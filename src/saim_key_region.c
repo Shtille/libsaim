@@ -2,7 +2,7 @@
 
 #include <string.h>
 
-inline void make_key_region(key_region_t * region, int min_x, int max_x, int min_y, int max_y, int level, bool is_break)
+void make_key_region(key_region_t * region, int min_x, int max_x, int min_y, int max_y, int level, bool is_break)
 {
 	region->min_x = min_x;
 	region->max_x = max_x;
@@ -50,11 +50,11 @@ bool is_key_inside_region(const key_region_t * region, const data_key_t * key)
 		&& (key_y >= region->min_y) && (key_y <= region->max_y)
 		&& in_x_range;
 }
-inline bool key_region_operator_equal(const key_region_t * lhs, const key_region_t * rhs)
+bool key_region_operator_equal(const key_region_t * lhs, const key_region_t * rhs)
 {
 	return memcmp(lhs, rhs, sizeof(key_region_t)) == 0;
 }
-inline bool key_region_operator_less(const key_region_t * lhs, const key_region_t * rhs)
+bool key_region_operator_less(const key_region_t * lhs, const key_region_t * rhs)
 {
 	return memcmp(lhs, rhs, sizeof(key_region_t)) < 0;
 }

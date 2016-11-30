@@ -7,7 +7,7 @@ TARGET_PATH = $(ROOT_PATH)/bin
 STATIC_LIB = lib$(TARGET).a
 SHARED_LIB = lib$(TARGET).so
 
-ifeq ($(IS_STATIC),"NO")
+ifeq ($(IS_STATIC),NO)
 TARGET_TYPE = dynamic
 TARGET_FILE = $(SHARED_LIB)
 else
@@ -26,7 +26,7 @@ LIB_PATH = $(ROOT_PATH)/src
 INCLUDE += -I$(LIB_PATH) -I$(ROOT_PATH)/include
 
 DEFINES = -DBUILDING_LIBSAIM
-ifneq ($(IS_STATIC),"NO")
+ifneq ($(IS_STATIC),NO)
 DEFINES += -DSAIM_STATICLIB
 endif
 

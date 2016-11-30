@@ -1,7 +1,10 @@
-MAKE := make
+CURL_PATH :=
+
+export CURL_PATH
 
 ifeq ($(OS),Windows_NT)
     #CCFLAGS += -D WIN32
+    MAKE := mingw32-make.exe
     SAIM_MAKEFILE = makefile-mingw32.mk
     ifeq ($(PROCESSOR_ARCHITEW6432),AMD64)
         #CCFLAGS += -D AMD64
@@ -14,6 +17,7 @@ ifeq ($(OS),Windows_NT)
         endif
     endif
 else
+	MAKE := make
     UNAME_S := $(shell uname -s)
     ifeq ($(UNAME_S),Linux)
         #CCFLAGS += -D LINUX
@@ -36,4 +40,5 @@ else
 endif
 
 all:
+	@echo Building with curl $(CURL_PATH)
 	$(MAKE) -f $(SAIM_MAKEFILE) IS_STATIC=YES

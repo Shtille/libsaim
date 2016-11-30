@@ -49,8 +49,8 @@ void saim_storage_file_destroy(saim_storage_file * file)
 }
 big_file_size_t saim_storage_file_get_estimated_file_size(unsigned int num_tiles, unsigned int data_size)
 {
-	unsigned int num_blocks = num_tiles / kBlockCapacity;
-	if (num_tiles % kBlockCapacity != 0)
+	unsigned int num_blocks = num_tiles / SAIM_FILE_BLOCK_CAPACITY;
+	if (num_tiles % SAIM_FILE_BLOCK_CAPACITY != 0)
 	    ++num_blocks;
 	big_file_size_t block_size = (big_file_size_t)(sizeof(block_header_t) + sizeof(block_keys_t));
 	big_file_size_t size = (big_file_size_t)(kHeaderSize);
@@ -383,7 +383,7 @@ save_result_t saim_storage_file_save_logics(saim_storage_file * file,
 			saim_storage_file_read_block_header(file, &block_header);
 
 			// Check whether block is full
-			if (block_header.count == kBlockCapacity)
+			if (block_header.count == SAIM_FILE_BLOCK_CAPACITY)
 			{
 				if (block_header.next_offset == 0) // it's the last block
 				{
@@ -423,7 +423,7 @@ save_result_t saim_storage_file_save_logics(saim_storage_file * file,
 						saim_file_write_array(&file->file, data->data, data->length);
 						// Also we need to store offset to this block in the last block
 						saim_file_offset_from_beginning(&file->file, this_block_offset);
-						block_header.count = kBlockCapacity;
+						block_header.count = SAIM_FILE_BLOCK_CAPACITY;
 						block_header.next_offset = file_size;
 						saim_storage_file_write_block_header(file, &block_header);
 						// Update blocks count information in header

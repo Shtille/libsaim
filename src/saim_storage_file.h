@@ -5,7 +5,7 @@
 #include "saim_key_offset_map.h"
 #include "saim_key_list.h"
 
-static const unsigned int kBlockCapacity = 100;
+#define SAIM_FILE_BLOCK_CAPACITY 100
 
 typedef struct {
 	saim_file file;
@@ -52,7 +52,7 @@ typedef struct {
 } block_header_t;
 
 typedef struct {
-    stored_key_pair_t key_offsets[kBlockCapacity];
+    stored_key_pair_t key_offsets[SAIM_FILE_BLOCK_CAPACITY];
 } block_keys_t;
 
 // Some base operations

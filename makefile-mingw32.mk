@@ -7,12 +7,12 @@ TARGET_PATH = $(ROOT_PATH)\bin
 STATIC_LIB = lib$(TARGET).a
 SHARED_LIB = lib$(TARGET).so
 
-ifeq ($(IS_STATIC),"YES")
-TARGET_TYPE = static
-TARGET_FILE = $(STATIC_LIB)
-else
+ifeq ($(IS_STATIC),NO)
 TARGET_TYPE = dynamic
 TARGET_FILE = $(SHARED_LIB)
+else
+TARGET_TYPE = static
+TARGET_FILE = $(STATIC_LIB)
 endif
 
 CC = gcc
@@ -23,10 +23,10 @@ RM = @del /Q
 
 LIB_PATH = $(ROOT_PATH)\src
 
-INCLUDE += -I$(LIB_PATH) -I$(ROOT_PATH)\include
+INCLUDE += -I$(LIB_PATH) -I$(ROOT_PATH)\include -I$(CURL_PATH)\include
 
 DEFINES = -DBUILDING_LIBSAIM
-ifeq ($(IS_STATIC),"YES")
+ifneq ($(IS_STATIC),NO)
 DEFINES += -DSAIM_STATICLIB
 endif
 
@@ -54,20 +54,20 @@ create_dir:
 	@if not exist $(TARGET_PATH) mkdir $(TARGET_PATH)
 
 clean:
-	@del $(ROOT_PATH)\*.o /s
-	@del $(ROOT_PATH)\bin\$(TARGET_FILE) /Q
+	@for /r %%R in (*.o) do (if exist %%R del /Q %%R)
+	@if exist $(ROOT_PATH)\bin\$(TARGET_FILE) $(RM) $(ROOT_PATH)\bin\$(TARGET_FILE)
     
 static: $(OBJECTS)
 	@echo making static library
 	@$(AR) $(STATIC_LIB) $(OBJECTS)
-	@copy $(STATIC_LIB) $(TARGET_PATH)\$(STATIC_LIB) /Y
-	@del $(STATIC_LIB) /Q
+	@$(CP) $(STATIC_LIB) $(TARGET_PATH)\$(STATIC_LIB)
+	@$(RM) $(STATIC_LIB)
 	
 dynamic: $(OBJECTS)
 	@echo making shared library
 	@$(CC) $(LDFLAGS) -o $(SHARED_LIB) $^ $(LIBRARIES)
-	@copy $(SHARED_LIB) $(TARGET_PATH)\$(SHARED_LIB) /Y
-	@del $(SHARED_LIB) /Q
+	@$(CP) $(SHARED_LIB) $(TARGET_PATH)\$(SHARED_LIB)
+	@$(RM) $(SHARED_LIB)
 
 %.o : %.c
 	@echo compiling file $<
