@@ -75,6 +75,19 @@ void saim_string_append(saim_string * str, const char* buffer, unsigned int leng
 	saim_string_resize(str, str->length + length);
 	memcpy(str->data + old_length, buffer, length);
 }
+void saim_string_swap(saim_string * dst, saim_string * src)
+{
+	saim_string tmp;
+
+	tmp.length = dst->length;
+	tmp.data = dst->data;
+
+	dst->length = src->length;
+	dst->data = src->data;
+
+	src->length = tmp.length;
+	src->data = tmp.data;
+}
 int saim_string_compare(const saim_string * str1, const saim_string * str2)
 {
 	if (str1->length < str2->length)

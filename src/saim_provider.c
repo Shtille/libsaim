@@ -18,7 +18,7 @@ void saim_provider__destroy(saim_provider * provider)
 	mtx_destroy(&provider->mutex);
 	saim_string_destroy(&provider->url_format);
 }
-bool saim_provider__init(saim_provider * provider, saim_provider_info * provider_info)
+bool saim_provider__init(saim_provider * provider, saim_provider_info * provider_info, int flags)
 {
 	/* We gonna exchange all {x},{y},{z} key masks on %i to easy make formatted url text */
 	const char *src;
@@ -86,8 +86,40 @@ bool saim_provider__init(saim_provider * provider, saim_provider_info * provider
 	if (num_arguments == 3)
 	{
 		// Finally copy the rest parameters
-		provider->min_lod = provider_info->min_lod;
-		provider->max_lod = provider_info->max_lod;
+		if (flags & SAIM_BOUNDING_BOX)
+		{
+			provider->min_latitude  = provider_info->min_latitude;
+			provider->max_latitude  = provider_info->max_latitude;
+			provider->min_longitude = provider_info->min_longitude;
+			provider->max_longitude = provider_info->max_longitude;
+		}
+		else // default values
+		{
+			provider->min_latitude  = -85.05112878;
+			provider->max_latitude  =  85.05112878;
+			provider->min_longitude = -180.0;
+			provider->max_longitude =  180.0;
+		}
+		if (flags & SAIM_LEVEL_OF_DETAIL)
+		{
+			provider->min_lod = provider_info->min_lod;
+			provider->max_lod = provider_info->max_lod;
+		}
+		else // default values
+		{
+			provider->min_lod = 0;
+			provider->max_lod = 15;
+		}
+		if (flags & SAIM_BITMAP_SIZE)
+		{
+			provider->bitmap_width  = provider_info->bitmap_width;
+			provider->bitmap_height = provider_info->bitmap_height;
+		}
+		else // default values
+		{
+			provider->bitmap_width  = 256;
+			provider->bitmap_height = 256;
+		}
 		return true;
 	}
 	else

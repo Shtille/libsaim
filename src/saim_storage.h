@@ -31,7 +31,7 @@ struct storage_t {
 
 /* =========== External functions =========== */
 
-void storage_create(storage_t * storage, const char* hash_string);
+bool storage_create(storage_t * storage, const char* hash_string);
 void storage_destroy(storage_t * storage);
 
 //! Storage initialization

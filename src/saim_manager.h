@@ -10,7 +10,7 @@
 bool saim_manager__initialize_cache(const char* hash_string);
 void saim_manager__deinitialize_cache();
 
-bool saim_manager__set_provider(saim_provider_info * provider_info);
+bool saim_manager__set_provider(saim_provider_info * provider_info, int flags);
 
 saim_cache * saim_manager__get_cache();
 

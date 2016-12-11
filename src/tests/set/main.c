@@ -34,6 +34,10 @@ int main()
     set = saim_set_create(compare_func, destroy_func);
     printf("after set_create %i\n", saim_memory_num_allocations());
 
+    node = saim_set_get_first(set);
+    if (node != set->nil)
+        printf("fuck this is not empty\n");
+
     int i, *vals[N];
 
     srand(12345);
@@ -71,7 +75,7 @@ int main()
     saim_set_destroy(set);
     printf("after destroy %i\n", saim_memory_num_allocations());
 
-    saim_memory_check();
+    saim_memory_cleanup();
 
     return 0;
 }

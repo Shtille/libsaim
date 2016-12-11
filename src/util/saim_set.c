@@ -382,11 +382,15 @@ void saim_set_cut(saim_set * tree, saim_set_node * z)
 
 saim_set_node * saim_set_get_first(saim_set * set)
 {
-  saim_set_node * x = set->root;
+  saim_set_node * x = set->root->left;
   if (x != set->nil)
-      while(x->left != set->nil)
-          x = x->left;
-  return x;
+  {
+    while(x->left != set->nil)
+        x = x->left;
+    return x;
+  }
+  else
+    return set->nil;
 }
 saim_set_node * saim_set_get_next(saim_set * set, saim_set_node * prev)
 {

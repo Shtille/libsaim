@@ -37,37 +37,43 @@ CFLAGS += $(DEFINES)
 LDFLAGS = -shared -fPIC
 
 SRC_DIRS = $(LIB_PATH)
+SRC_DIRS += $(LIB_PATH)/rasterizer
 SRC_DIRS += $(LIB_PATH)/util
 SRC_DIRS += $(ROOT_PATH)/deps
 SRC_FILES = $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
 
 OBJECTS = $(SRC_FILES:.c=.o)
 
-LIBRARIES =
+LIBRARIES = -lcurl
+
+ifeq ($(INSTALL_PATH),)
+INSTALL_PATH = $(TARGET_PATH)
+endif
 
 all: $(SRC_FILES) $(TARGET)
 	@echo All is done!
 
-$(TARGET): create_dir clean $(TARGET_TYPE)
+$(TARGET): create_dir clean $(TARGET_TYPE) install
 
 create_dir:
 	@test -d $(TARGET_PATH) || mkdir $(TARGET_PATH)
 
 clean:
 	@find $(ROOT_PATH) -name "*.o" -type f -delete
-	@$(RM) $(TARGET_PATH)/$(TARGET_FILE)
+
+install:
+	@echo installing to $(INSTALL_PATH)
+	@$(RM) $(INSTALL_PATH)/$(TARGET_FILE)
+	@$(CP) $(TARGET_FILE) $(INSTALL_PATH)/$(TARGET_FILE)
+	@$(RM) $(TARGET_FILE)
     
 static: $(OBJECTS)
 	@echo making static library
 	@$(AR) $(STATIC_LIB) $(OBJECTS)
-	@$(CP) $(STATIC_LIB) $(TARGET_PATH)/$(STATIC_LIB)
-	@$(RM) $(STATIC_LIB)
 	
 dynamic: $(OBJECTS)
 	@echo making shared library
 	@$(CC) $(LDFLAGS) -o $(SHARED_LIB) $^ $(LIBRARIES)
-	@$(CP) $(SHARED_LIB) $(TARGET_PATH)/$(SHARED_LIB)
-	@$(RM) $(SHARED_LIB)
 
 %.o : %.c
 	@echo compiling file $<

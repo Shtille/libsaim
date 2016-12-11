@@ -2,11 +2,15 @@
 
 #include "util/saim_memory.h"
 
-void saim_cache_create(saim_cache * cache, const char* hash_string)
+bool saim_cache_create(saim_cache * cache, const char* hash_string)
 {
-	saim_tile_service__create(&cache->tile_service);
+	if (!saim_tile_service__create(&cache->tile_service))
+		return false;
 
-	storage_create(&cache->storage, hash_string);
+	if (!storage_create(&cache->storage, hash_string))
+		return false;
+
+	return true;
 }
 void saim_cache_destroy(saim_cache * cache)
 {

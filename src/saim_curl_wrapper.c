@@ -1,6 +1,6 @@
 #include "saim_curl_wrapper.h"
 
-#include <curl/curl.h>
+#include "curl/curl.h"
 
 #include <stdio.h>
 

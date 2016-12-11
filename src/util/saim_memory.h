@@ -5,10 +5,13 @@
 * Debug versions of memory allocation and freeing fucntions
 */
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
-void saim_memory_init();
+bool saim_memory_init();
+void saim_memory_cleanup();
+
 void saim_memory_check();
 int saim_memory_num_allocations();
 

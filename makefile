@@ -1,6 +1,6 @@
+# Empty if other haven't been set
 CURL_PATH :=
-
-export CURL_PATH
+CURL_LIB :=
 
 ifeq ($(OS),Windows_NT)
     #CCFLAGS += -D WIN32
@@ -22,10 +22,12 @@ else
     ifeq ($(UNAME_S),Linux)
         #CCFLAGS += -D LINUX
         SAIM_MAKEFILE = makefile-unix.mk
+        INSTALL_PATH := /usr/local/lib
     endif
     ifeq ($(UNAME_S),Darwin)
         #CCFLAGS += -D OSX
         SAIM_MAKEFILE = makefile-unix.mk
+        INSTALL_PATH := /usr/local/lib
     endif
     UNAME_P := $(shell uname -p)
     ifeq ($(UNAME_P),x86_64)
@@ -39,6 +41,11 @@ else
     endif
 endif
 
+export CURL_PATH
+export CURL_LIB
+export INSTALL_PATH
+
 all:
 	@echo Building with curl $(CURL_PATH)
 	$(MAKE) -f $(SAIM_MAKEFILE) IS_STATIC=YES
+	$(MAKE) -f $(SAIM_MAKEFILE) IS_STATIC=NO

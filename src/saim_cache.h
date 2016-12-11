@@ -11,7 +11,7 @@ typedef struct {
 	storage_t storage;
 } saim_cache;
 
-void saim_cache_create(saim_cache * cache, const char* hash_string);
+bool saim_cache_create(saim_cache * cache, const char* hash_string);
 void saim_cache_destroy(saim_cache * cache);
 
 bool saim_cache_initialize(saim_cache * cache);

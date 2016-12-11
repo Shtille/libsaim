@@ -8,30 +8,35 @@
 static const file_offset_t kMaxMainFileSize = 300 << 20; // 300 MB
 static const file_offset_t kMaxRegionFileSize = 500 << 20; // 500 MB
 
-extern char * s_path; // declared in saim_init.c
+extern char s_path[260]; // declared in saim_init.c
 
 static void append_path(char * buffer, const char* filename)
 {
-	strcpy(buffer, s_path);
-	strcat(buffer, filename);
+	size_t path_length, filename_length;
+	path_length = strlen(s_path);
+	filename_length = strlen(filename);
+	strncpy(buffer, s_path, path_length);
+	strncpy(buffer + path_length, filename, filename_length);
+	buffer[path_length + filename_length] = '\0';
 }
 
-void storage_create(storage_t * storage, const char* hash_string)
+bool storage_create(storage_t * storage, const char* hash_string)
 {
 	if (mtx_init(&storage->critical_section, mtx_plain) == thrd_error)
 	{
 		fprintf(stderr, "saim: mutex init failed");
-		return;
+		return false;
 	}
 	if (mtx_init(&storage->critical_section_key_set, mtx_plain) == thrd_error)
 	{
 		fprintf(stderr, "saim: mutex init failed");
-		return;
+		return false;
 	}
 	storage->hash_value = saim_hash(hash_string);
 	key_set_create(&storage->key_set);
 	region_map_create(&storage->region_map);
 	storage_info_map_create(&storage->region_info_map);
+	return true;
 }
 void storage_destroy(storage_t * storage)
 {
@@ -53,6 +58,7 @@ bool storage_initialize(storage_t * storage)
 	append_path(buffer, "regions.omrh");
 	regions_header_file_create(&storage->regions_header_file, buffer);
 	append_path(buffer, "data.om");
+	storage_info_create(&storage->main_info);
 	saim_storage_file_create(&storage->main_info.file, buffer, storage->hash_value, kMaxMainFileSize);
 	if (storage_initialize_file(storage, &storage->main_info) == kStorage_Failed)
 		return false;
@@ -584,6 +590,7 @@ void storage_deinitialize(storage_t * storage)
 {
 	storage_deinitialize_regions(storage);
 	saim_storage_file_destroy(&storage->main_info.file);
+	storage_info_destroy(&storage->main_info);
 	regions_header_file_destroy(&storage->regions_header_file);
 }
 void storage_generate_region_file_name(storage_t * storage, char* buffer)

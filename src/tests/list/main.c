@@ -70,7 +70,7 @@ int main()
     saim_list_destroy(&list);
     printf("after destroy %i\n", saim_memory_num_allocations());
 
-    saim_memory_check();
+    saim_memory_cleanup();
 
     return 0;
 }
