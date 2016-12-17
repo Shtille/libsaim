@@ -8,8 +8,9 @@ static int compare_func(const void * p1, const void * p2)
 }
 static void destroy_func(void * p)
 {
-	// saim_bitmap_info_pair is a simple struct, so do not need to deinitialize
-	SAIM_FREE((saim_bitmap_info_pair *)p);
+	saim_bitmap_info_pair * pair = (saim_bitmap_info_pair *)p;
+	saim_bitmap_info_pair__destroy(pair);
+	SAIM_FREE(pair);
 }
 
 void saim_bitmap_map__create(saim_bitmap_map * map)

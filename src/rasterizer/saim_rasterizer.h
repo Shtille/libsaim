@@ -79,7 +79,7 @@ void saim_rasterizer__set_bitmap_for_buffer(saim_rasterizer * rasterizer, int ke
 void saim_rasterizer__set_bitmap_low_for_buffer(saim_rasterizer * rasterizer, int key_z_low, int key_x, int key_y, const saim_bitmap * bitmap);
 
 void saim_rasterizer__clear_bitmap_buffer(saim_rasterizer * rasterizer);
-inline const saim_buffered_bitmap_info * saim_rasterizer__get_bitmap_from_buffer(saim_rasterizer * rasterizer, int key_x, int key_y);
+const saim_buffered_bitmap_info * saim_rasterizer__get_bitmap_from_buffer(saim_rasterizer * rasterizer, int key_x, int key_y);
 void saim_rasterizer__erase_key_from_buffer(saim_rasterizer * rasterizer, const data_key_t * key);
 void saim_rasterizer__sort_cache(saim_rasterizer * rasterizer);
 

@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 
+#define SAIM_SET_NULL set->nil
+
 saim_set * saim_set_create(int  (*compare_func)(const void*,const void*),
 			      		   void (*destroy_func)(void*))
 {
@@ -164,11 +166,11 @@ saim_set_node * saim_set_insert(saim_set * tree, void * data)
   return new_node;
 }
   
-saim_set_node * saim_set_tree_successor(saim_set * tree, saim_set_node * x)
+saim_set_node * saim_set_tree_successor(saim_set * set, saim_set_node * x)
 { 
   saim_set_node * y;
-  saim_set_node * nil = tree->nil;
-  saim_set_node * root = tree->root;
+  saim_set_node * nil = set->nil;
+  saim_set_node * root = set->root;
 
   if (nil != (y = x->right)) { /* assignment to y is intentional */
     while(y->left != nil) { /* returns the minium of the right subtree of x */
@@ -181,7 +183,7 @@ saim_set_node * saim_set_tree_successor(saim_set * tree, saim_set_node * x)
       x = y;
       y = y->parent;
     }
-    if (y == root) return nil;
+    if (y == root) return SAIM_SET_NULL;
     return y;
   }
 }
@@ -212,21 +214,21 @@ void saim_set_clear(saim_set * tree)
   tree->size = 0;
 }
   
-saim_set_node * saim_set_search(saim_set * tree, const void * data)
+saim_set_node * saim_set_search(saim_set * set, const void * data)
 {
-  saim_set_node * x = tree->root->left;
-  saim_set_node * nil = tree->nil;
+  saim_set_node * x = set->root->left;
+  saim_set_node * nil = set->nil;
   int compVal;
-  if (x == nil) return 0;
-  compVal = tree->compare_func(x->data, data);
+  if (x == nil) return SAIM_SET_NULL;
+  compVal = set->compare_func(x->data, data);
   while(0 != compVal) {/*assignemnt*/
     if (1 == compVal) { /* x->data > data */
       x = x->left;
     } else {
       x = x->right;
     }
-    if ( x == nil) return 0;
-    compVal = tree->compare_func(x->data, data);
+    if ( x == nil) return SAIM_SET_NULL;
+    compVal = set->compare_func(x->data, data);
   }
   return x;
 }
@@ -390,7 +392,7 @@ saim_set_node * saim_set_get_first(saim_set * set)
     return x;
   }
   else
-    return set->nil;
+    return SAIM_SET_NULL;
 }
 saim_set_node * saim_set_get_next(saim_set * set, saim_set_node * prev)
 {
@@ -408,7 +410,7 @@ saim_set_node * saim_set_get_next(saim_set * set, saim_set_node * prev)
             x = y;
             y = y->parent;
         }
-        if (y == set->root) return set->nil;
+        if (y == set->root) return SAIM_SET_NULL;
         return y;
     }
 }
@@ -416,3 +418,5 @@ unsigned int saim_set_size(saim_set * set)
 {
   return set->size;
 }
+
+#undef SAIM_SET_NULL

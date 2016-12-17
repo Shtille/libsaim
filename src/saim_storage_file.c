@@ -80,7 +80,7 @@ void saim_storage_file_regenerate(saim_storage_file * file)
 	}
 	else
 	{
-		fprintf(stderr, "saim: file regeneration has failed.");
+		fprintf(stderr, "saim: file regeneration has failed.\n");
 		file->file.operation_successful = false;
 	}
 }
@@ -119,7 +119,7 @@ bool saim_storage_file_read_header(saim_storage_file * file)
 	// Check signature
 	if (signature != kFormatSignature)
 	{
-		fprintf(stderr, "saim: wrong file signature, terminating");
+		fprintf(stderr, "saim: wrong file signature, terminating\n");
 		file->file.operation_successful = false;
 		return false;
 	}
@@ -128,7 +128,7 @@ bool saim_storage_file_read_header(saim_storage_file * file)
 	// Check version
 	if (version < kVersion) // out of date
 	{
-		fprintf(stderr, "saim: format version %d is out of date. File will be cleaned.", version);
+		fprintf(stderr, "saim: format version %d is out of date. File will be cleaned.\n", version);
 		saim_storage_file_regenerate(file);
 		return false;
 	}
@@ -137,7 +137,7 @@ bool saim_storage_file_read_header(saim_storage_file * file)
 	// Check corruption
 	if (corrupted)
 	{
-		fprintf(stderr, "saim: file is broken. It will be cleaned.");
+		fprintf(stderr, "saim: file is broken. It will be cleaned.\n");
 		saim_storage_file_regenerate(file);
 		return false;
 	}
@@ -147,7 +147,7 @@ bool saim_storage_file_read_header(saim_storage_file * file)
 	saim_file_read_uint(&file->file, &hash_value);
 	if (hash_value != file->hash_value)
 	{
-		fprintf(stderr, "saim: file provider differs from chosen. File will be cleaned.");
+		fprintf(stderr, "saim: file provider differs from chosen. File will be cleaned.\n");
 		saim_storage_file_regenerate(file);
 		return false;
 	}
@@ -202,12 +202,12 @@ void saim_storage_file_write_key_pair(saim_storage_file * file, const stored_key
 {
 	if (0 == fwrite(&(pair->key), sizeof(pair->key), 1, file->file.file))
 	{
-		fprintf(stderr, "saim: fwrite failed");
+		fprintf(stderr, "saim: fwrite failed\n");
 		file->file.operation_successful = false;
 	}
 	if (0 == fwrite(&(pair->info), sizeof(pair->info), 1, file->file.file))
 	{
-		fprintf(stderr, "saim: fwrite failed");
+		fprintf(stderr, "saim: fwrite failed\n");
 		file->file.operation_successful = false;
 	}
 }
@@ -215,12 +215,12 @@ void saim_storage_file_read_key_pair(saim_storage_file * file, stored_key_pair_t
 {
 	if (0 == fread(&(pair->key), sizeof(pair->key), 1, file->file.file))
 	{
-		fprintf(stderr, "saim: fread failed");
+		fprintf(stderr, "saim: fread failed\n");
 		file->file.operation_successful = false;
 	}
 	if (0 == fread(&(pair->info), sizeof(pair->info), 1, file->file.file))
 	{
-		fprintf(stderr, "saim: fread failed");
+		fprintf(stderr, "saim: fread failed\n");
 		file->file.operation_successful = false;
 	}
 }
@@ -238,7 +238,7 @@ void saim_storage_file_write_block_keys(saim_storage_file * file, const block_ke
 {
 	if (0 == fwrite(keys->key_offsets, sizeof(keys->key_offsets), 1, file->file.file))
 	{
-		fprintf(stderr, "saim: fwrite failed");
+		fprintf(stderr, "saim: fwrite failed\n");
 		file->file.operation_successful = false;
 	}
 }
@@ -246,7 +246,7 @@ void saim_storage_file_read_block_keys(saim_storage_file * file, block_keys_t *k
 {
 	if (0 == fread(keys->key_offsets, sizeof(keys->key_offsets), 1, file->file.file))
 	{
-		fprintf(stderr, "saim: fread failed");
+		fprintf(stderr, "saim: fread failed\n");
 		file->file.operation_successful = false;
 	}
 }

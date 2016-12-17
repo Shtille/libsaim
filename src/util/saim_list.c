@@ -124,6 +124,10 @@ void * saim_list_delete(saim_list * list, saim_list_node * node)
 		node->prev->next = node->next;
 	if (node->next)
 		node->next->prev = node->prev;
+	if (list->head == node)
+		list->head = node->next;
+	if (list->tail == node)
+		list->tail = node->prev;
 	--list->length;
 	data = node->data;
 	SAIM_FREE(node);

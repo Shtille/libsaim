@@ -42,7 +42,7 @@ bool saim_memory_init()
 #ifdef SAIM_MEMORY_DEBUG
 	if (mtx_init(&s_mutex, mtx_plain) == thrd_error)
 	{
-		fprintf(stderr, "saim: mutex init failed");
+		fprintf(stderr, "saim: mutex init failed\n");
 		return false;
 	}
 	s_number_allocated = 0;

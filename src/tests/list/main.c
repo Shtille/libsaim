@@ -56,6 +56,16 @@ int main()
     }
     putc('\n', stdout);
 
+    printf("inverse:\n");
+    node = list.tail;
+    if (!node)
+        printf("no tail!\n");
+    while (node) {
+        printf("%i ", *(int*)node->data);
+        node = node->prev;
+    }
+    putc('\n', stdout);
+
     saim_list_sort(&list, compare_func);
     printf("after sort:\n");
     node = list.head;
@@ -64,6 +74,42 @@ int main()
     while (node) {
         printf("%i ", *(int*)node->data);
         node = node->next;
+    }
+    putc('\n', stdout);
+
+    printf("inverse:\n");
+    node = list.tail;
+    if (!node)
+        printf("no tail!\n");
+    while (node) {
+        printf("%i ", *(int*)node->data);
+        node = node->prev;
+    }
+    putc('\n', stdout);
+
+    saim_list_push_back(&list, getnum(11));
+    saim_list_push_back(&list, getnum(12));
+    saim_list_push_back(&list, getnum(13));
+    destroy_func(saim_list_pop_front(&list));
+    destroy_func(saim_list_pop_front(&list));
+    destroy_func(saim_list_pop_front(&list));
+    printf("after some push and pop:\n");
+    node = list.head;
+    if (!node)
+        printf("no head!\n");
+    while (node) {
+        printf("%i ", *(int*)node->data);
+        node = node->next;
+    }
+    putc('\n', stdout);
+
+    printf("inverse:\n");
+    node = list.tail;
+    if (!node)
+        printf("no tail!\n");
+    while (node) {
+        printf("%i ", *(int*)node->data);
+        node = node->prev;
     }
     putc('\n', stdout);
 

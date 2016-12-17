@@ -48,7 +48,7 @@ bool saim_file_open_for_write(saim_file * file)
     }
     else
     {
-        fprintf(stderr, "saim: fopen failed: %s", file->filename);
+        fprintf(stderr, "saim: fopen failed: %s\r\n", file->filename);
         return false;
     }
 }
@@ -63,7 +63,7 @@ bool saim_file_open_for_read(saim_file * file)
 	    }
 	    else
 	    {
-	        fprintf(stderr, "saim: fopen failed: %s", file->filename);
+	        fprintf(stderr, "saim: fopen failed: %s\r\n", file->filename);
 	        return false;
 	    }
 	}
@@ -94,7 +94,7 @@ void saim_file_offset_from_beginning(saim_file * file, long offset)
 {
 	if (0 != fseek(file->file, offset, SEEK_SET))
 	{
-		fprintf(stderr, "saim: fseek failed");
+		fprintf(stderr, "saim: fseek failed\n");
 		file->operation_successful = false;
 	}
 }
@@ -102,7 +102,7 @@ void saim_file_offset_from_current(saim_file * file, long offset)
 {
 	if (0 != fseek(file->file, offset, SEEK_CUR))
 	{
-		fprintf(stderr, "saim: fseek failed");
+		fprintf(stderr, "saim: fseek failed\n");
 		file->operation_successful = false;
 	}
 }
@@ -110,7 +110,7 @@ void saim_file_offset_from_end(saim_file * file, long offset)
 {
 	if (0 != fseek(file->file, offset, SEEK_END))
 	{
-		fprintf(stderr, "saim: fseek failed");
+		fprintf(stderr, "saim: fseek failed\n");
 		file->operation_successful = false;
 	}
 }
@@ -122,7 +122,7 @@ void saim_file_write_byte(saim_file * file, unsigned char x)
 {
 	if (0 == fwrite(&x, sizeof(x), 1, file->file))
 	{
-		fprintf(stderr, "saim: fwrite failed");
+		fprintf(stderr, "saim: fwrite failed\n");
 		file->operation_successful = false;
 	}
 }
@@ -130,7 +130,7 @@ void saim_file_write_int(saim_file * file, int x)
 {
 	if (0 == fwrite(&x, sizeof(x), 1, file->file))
 	{
-		fprintf(stderr, "saim: fwrite failed");
+		fprintf(stderr, "saim: fwrite failed\n");
 		file->operation_successful = false;
 	}
 }
@@ -138,7 +138,7 @@ void saim_file_write_uint(saim_file * file, unsigned int x)
 {
 	if (0 == fwrite(&x, sizeof(x), 1, file->file))
 	{
-		fprintf(stderr, "saim: fwrite failed");
+		fprintf(stderr, "saim: fwrite failed\n");
 		file->operation_successful = false;
 	}
 }
@@ -146,7 +146,7 @@ void saim_file_write_array(saim_file * file, const void *data, unsigned int size
 {
 	if (0 == fwrite(data, size, 1, file->file))
 	{
-		fprintf(stderr, "saim: fwrite failed");
+		fprintf(stderr, "saim: fwrite failed\n");
 		file->operation_successful = false;
 	}
 }
@@ -154,12 +154,12 @@ void saim_file_write_string(saim_file * file, const saim_string* str)
 {
 	if (0 == fwrite(&str->length, sizeof(unsigned int), 1, file->file))
 	{
-		fprintf(stderr, "saim: fwrite failed");
+		fprintf(stderr, "saim: fwrite failed\n");
 		file->operation_successful = false;
 	}
 	if (0 == fwrite(str->data, str->length * sizeof(char), 1, file->file))
 	{
-		fprintf(stderr, "saim: fwrite failed");
+		fprintf(stderr, "saim: fwrite failed\n");
 		file->operation_successful = false;
 	}
 }
@@ -167,7 +167,7 @@ void saim_file_read_byte(saim_file * file, unsigned char *x)
 {
 	if (0 == fread(x, sizeof(unsigned char), 1, file->file))
 	{
-		fprintf(stderr, "saim: fread failed");
+		fprintf(stderr, "saim: fread failed\n");
 		file->operation_successful = false;
 	}
 }
@@ -175,7 +175,7 @@ void saim_file_read_int(saim_file * file, int *x)
 {
 	if (0 == fread(x, sizeof(int), 1, file->file))
 	{
-		fprintf(stderr, "saim: fread failed");
+		fprintf(stderr, "saim: fread failed\n");
 		file->operation_successful = false;
 	}
 }
@@ -183,7 +183,7 @@ void saim_file_read_uint(saim_file * file, unsigned int *x)
 {
 	if (0 == fread(x, sizeof(unsigned int), 1, file->file))
 	{
-		fprintf(stderr, "saim: fread failed");
+		fprintf(stderr, "saim: fread failed\n");
 		file->operation_successful = false;
 	}
 }
@@ -191,7 +191,7 @@ void saim_file_read_array(saim_file * file, void *data, unsigned int size)
 {
 	if (0 == fread(data, size, 1, file->file))
 	{
-		fprintf(stderr, "saim: fread failed");
+		fprintf(stderr, "saim: fread failed\n");
 		file->operation_successful = false;
 	}
 }
@@ -200,13 +200,13 @@ void saim_file_read_string(saim_file * file, saim_string *str)
 	unsigned int length;
 	if (0 == fread(&length, sizeof(unsigned int), 1, file->file))
 	{
-		fprintf(stderr, "saim: fread failed");
+		fprintf(stderr, "saim: fread failed\n");
 		file->operation_successful = false;
 	}
 	saim_string_resize(str, length);
 	if (0 == fread(str->data, str->length * sizeof(char), 1, file->file))
 	{
-		fprintf(stderr, "saim: fread failed");
+		fprintf(stderr, "saim: fread failed\n");
 		file->operation_successful = false;
 	}
 }

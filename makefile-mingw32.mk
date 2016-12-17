@@ -37,6 +37,7 @@ CFLAGS += $(DEFINES)
 LDFLAGS = -s -shared
 
 SRC_DIRS = $(LIB_PATH)
+SRC_DIRS += $(LIB_PATH)/rasterizer
 SRC_DIRS += $(LIB_PATH)/util
 SRC_DIRS += $(ROOT_PATH)/deps
 SRC_FILES = $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))

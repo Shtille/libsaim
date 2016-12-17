@@ -6,6 +6,7 @@ bool saim_cache_create(saim_cache * cache, const char* hash_string)
 {
 	if (!saim_tile_service__create(&cache->tile_service))
 		return false;
+	saim_tile_service__run_service(&cache->tile_service);
 
 	if (!storage_create(&cache->storage, hash_string))
 		return false;
@@ -14,6 +15,7 @@ bool saim_cache_create(saim_cache * cache, const char* hash_string)
 }
 void saim_cache_destroy(saim_cache * cache)
 {
+	saim_tile_service__stop_service(&cache->tile_service);
 	saim_tile_service__destroy(&cache->tile_service);
 
 	storage_destroy(&cache->storage);

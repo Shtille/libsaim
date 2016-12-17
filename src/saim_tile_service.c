@@ -14,13 +14,14 @@ static int thread_func(void * arg)
 
 	while (!finishing)
 	{
+        task = NULL;
 		mtx_lock(&service->critical_section);
 		finishing = service->finishing;
 		// Find a task with lowest detail and remove it from list
-		task = (saim_tile_service_task_t *)saim_list_front(&service->tasks);
-		if (task)
+		if (service->tasks.length != 0)
 		{
 			best_node = service->tasks.head;
+            task = (saim_tile_service_task_t *)best_node->data;
 			node = best_node->next;
 			while (node != NULL)
 			{
@@ -78,7 +79,7 @@ bool saim_tile_service__create(saim_tile_service_t * service)
 {
 	if (mtx_init(&service->critical_section, mtx_plain) == thrd_error)
 	{
-		fprintf(stderr, "saim: mutex init failed");
+		fprintf(stderr, "saim: mutex init failed\n");
 		return false;
 	}
 	if (!saim_curl_wrapper__create(&service->curl_wrapper))
@@ -101,7 +102,7 @@ void saim_tile_service__run_service(saim_tile_service_t * service)
 {
 	if (thrd_create(&service->thread, thread_func, service) != thrd_success)
 	{
-		fprintf(stderr, "saim: thread create failed");
+		fprintf(stderr, "saim: thread create failed\n");
 	}
 }
 void saim_tile_service__stop_service(saim_tile_service_t * service)

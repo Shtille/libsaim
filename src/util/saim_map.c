@@ -220,7 +220,7 @@ saim_map_node * saim_map_search(saim_map * tree, void * key)
   saim_map_node * x = tree->root->left;
   saim_map_node * nil = tree->nil;
   int compVal;
-  if (x == nil) return 0;
+  if (x == nil) return nil;
   compVal = tree->compare_func(x->key, key);
   while(0 != compVal) {/*assignemnt*/
     if (1 == compVal) { /* x->key > key */
@@ -228,7 +228,7 @@ saim_map_node * saim_map_search(saim_map * tree, void * key)
     } else {
       x = x->right;
     }
-    if ( x == nil) return 0;
+    if ( x == nil) return nil;
     compVal = tree->compare_func(x->key, key);
   }
   return x;

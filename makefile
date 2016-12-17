@@ -2,6 +2,12 @@
 CURL_PATH :=
 CURL_LIB :=
 
+JPEG_PATH :=
+JPEG_LIB :=
+
+PNG_PATH :=
+PNG_LIB :=
+
 ifeq ($(OS),Windows_NT)
     #CCFLAGS += -D WIN32
     MAKE := mingw32-make.exe
@@ -43,9 +49,12 @@ endif
 
 export CURL_PATH
 export CURL_LIB
+export JPEG_PATH
+export JPEG_LIB
+export PNG_PATH
+export PNG_LIB
 export INSTALL_PATH
 
 all:
-	@echo Building with curl $(CURL_PATH)
 	$(MAKE) -f $(SAIM_MAKEFILE) IS_STATIC=YES
 	$(MAKE) -f $(SAIM_MAKEFILE) IS_STATIC=NO

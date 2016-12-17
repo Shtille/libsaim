@@ -108,7 +108,7 @@ void regions_header_file_regenerate(regions_header_file_t * file)
 	}
 	else
 	{
-		fprintf(stderr, "saim: file regeneration has failed.");
+		fprintf(stderr, "saim: file regeneration has failed.\n");
 		file->file.operation_successful = false;
 	}
 }
@@ -138,22 +138,22 @@ void regions_header_file_write_region_info(regions_header_file_t * file, const r
 {
 	if (0 == fwrite(&region->upper_latitude, sizeof(region->upper_latitude), 1, file->file.file))
 	{
-		fprintf(stderr, "saim: fwrite failed");
+		fprintf(stderr, "saim: fwrite failed\n");
 		file->file.operation_successful = false;
 	}
 	if (0 == fwrite(&region->left_longitude, sizeof(region->left_longitude), 1, file->file.file))
 	{
-		fprintf(stderr, "saim: fwrite failed");
+		fprintf(stderr, "saim: fwrite failed\n");
 		file->file.operation_successful = false;
 	}
 	if (0 == fwrite(&region->lower_latitude, sizeof(region->lower_latitude), 1, file->file.file))
 	{
-		fprintf(stderr, "saim: fwrite failed");
+		fprintf(stderr, "saim: fwrite failed\n");
 		file->file.operation_successful = false;
 	}
 	if (0 == fwrite(&region->right_longitude, sizeof(region->right_longitude), 1, file->file.file))
 	{
-		fprintf(stderr, "saim: fwrite failed");
+		fprintf(stderr, "saim: fwrite failed\n");
 		file->file.operation_successful = false;
 	}
 	saim_file_write_string(&file->file, &region->name);
@@ -164,7 +164,7 @@ void regions_header_file_write_region_stored_info(regions_header_file_t * file, 
 	saim_file_write_uint(&file->file, region->status);
 	if (0 == fwrite(&region->time, sizeof(region->time), 1, file->file.file))
 	{
-		fprintf(stderr, "saim: fwrite failed");
+		fprintf(stderr, "saim: fwrite failed\n");
 		file->file.operation_successful = false;
 	}
 	saim_file_write_string(&file->file, &region->filename);
@@ -179,7 +179,7 @@ bool regions_header_file_read_header(regions_header_file_t * file)
 	// Check signature
 	if (signature != kFormatSignature)
 	{
-		fprintf(stderr, "saim: wrong file signature, terminating");
+		fprintf(stderr, "saim: wrong file signature, terminating\n");
 		file->file.operation_successful = false;
 		return false;
 	}
@@ -188,7 +188,7 @@ bool regions_header_file_read_header(regions_header_file_t * file)
 	// Check version
 	if (version < kVersion) // out of date
 	{
-		fprintf(stderr, "saim: format version %d is out of date. File will be cleaned.", version);
+		fprintf(stderr, "saim: format version %d is out of date. File will be cleaned.\n", version);
 		regions_header_file_regenerate(file);
 		return false;
 	}
@@ -197,7 +197,7 @@ bool regions_header_file_read_header(regions_header_file_t * file)
 	// Check corruption
 	if (corrupted)
 	{
-		fprintf(stderr, "saim: file is broken. It will be cleaned.");
+		fprintf(stderr, "saim: file is broken. It will be cleaned.\n");
 		regions_header_file_regenerate(file);
 		return false;
 	}
@@ -211,22 +211,22 @@ void regions_header_file_read_region_info(regions_header_file_t * file, region_i
 {
 	if (0 == fread(&region->upper_latitude, sizeof(region->upper_latitude), 1, file->file.file))
 	{
-		fprintf(stderr, "saim: fread failed");
+		fprintf(stderr, "saim: fread failed\n");
 		file->file.operation_successful = false;
 	}
 	if (0 == fread(&region->left_longitude, sizeof(region->left_longitude), 1, file->file.file))
 	{
-		fprintf(stderr, "saim: fread failed");
+		fprintf(stderr, "saim: fread failed\n");
 		file->file.operation_successful = false;
 	}
 	if (0 == fread(&region->lower_latitude, sizeof(region->lower_latitude), 1, file->file.file))
 	{
-		fprintf(stderr, "saim: fread failed");
+		fprintf(stderr, "saim: fread failed\n");
 		file->file.operation_successful = false;
 	}
 	if (0 == fread(&region->right_longitude, sizeof(region->right_longitude), 1, file->file.file))
 	{
-		fprintf(stderr, "saim: fread failed");
+		fprintf(stderr, "saim: fread failed\n");
 		file->file.operation_successful = false;
 	}
 	saim_file_read_string(&file->file, &region->name);
@@ -237,7 +237,7 @@ void regions_header_file_read_region_stored_info(regions_header_file_t * file, s
 	saim_file_read_uint(&file->file, &region->status);
 	if (0 == fread(&region->time, sizeof(region->time), 1, file->file.file))
 	{
-		fprintf(stderr, "saim: fread failed");
+		fprintf(stderr, "saim: fread failed\n");
 		file->file.operation_successful = false;
 	}
 	saim_file_read_string(&file->file, &region->filename);

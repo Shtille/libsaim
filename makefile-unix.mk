@@ -1,5 +1,5 @@
-# Makefile for windows
-# This makefile has been made for compilation possibility under systems without Visual Studio 2013
+# Makefile for Unix
+# This makefile has been made for compilation via command line tool
 
 TARGET = saim
 ROOT_PATH = .
@@ -24,6 +24,12 @@ RM = rm -f
 LIB_PATH = $(ROOT_PATH)/src
 
 INCLUDE += -I$(LIB_PATH) -I$(ROOT_PATH)/include
+ifneq ($(JPEG_PATH),)
+INCLUDE += -I$(JPEG_PATH)/include
+endif
+ifneq ($(PNG_PATH),)
+INCLUDE += -I$(PNG_PATH)/include
+endif
 
 DEFINES = -DBUILDING_LIBSAIM
 ifneq ($(IS_STATIC),NO)
@@ -44,7 +50,13 @@ SRC_FILES = $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
 
 OBJECTS = $(SRC_FILES:.c=.o)
 
-LIBRARIES = -lcurl
+LIBRARIES = -L$(TARGET_PATH) -lcurl
+ifneq ($(JPEG_LIB),)
+LIBRARIES += -l$(JPEG_LIB)
+endif
+ifneq ($(PNG_LIB),)
+LIBRARIES += -l$(PNG_LIB)
+endif
 
 ifeq ($(INSTALL_PATH),)
 INSTALL_PATH = $(TARGET_PATH)

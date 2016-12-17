@@ -8,4 +8,7 @@ typedef struct {
 	int* p_usage;
 } saim_bitmap_info;
 
+void saim_bitmap_info__create(saim_bitmap_info * bitmap_info);
+void saim_bitmap_info__destroy(saim_bitmap_info * bitmap_info);
+
 #endif

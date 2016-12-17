@@ -65,7 +65,7 @@ bool saim_region_service__create(saim_region_service_t * service)
 {
 	if (mtx_init(&service->critical_section, mtx_plain) == thrd_error)
 	{
-		fprintf(stderr, "saim: mutex init failed");
+		fprintf(stderr, "saim: mutex init failed\n");
 		return false;
 	}
 	if (!saim_curl_wrapper__create(&service->curl_wrapper))
@@ -88,7 +88,7 @@ void saim_region_service__run_service(saim_region_service_t * service)
 {
 	if (thrd_create(&service->thread, thread_func, service) != thrd_success)
 	{
-		fprintf(stderr, "saim: thread create failed");
+		fprintf(stderr, "saim: thread create failed\n");
 	}
 }
 void saim_region_service__stop_service(saim_region_service_t * service)

@@ -8,7 +8,7 @@ bool saim_provider__create(saim_provider * provider)
 	saim_string_create(&provider->url_format);
 	if (mtx_init(&provider->mutex, mtx_plain) == thrd_error)
 	{
-		fprintf(stderr, "saim: mutex init failed");
+		fprintf(stderr, "saim: mutex init failed\n");
 		return false;
 	}
 	return true;

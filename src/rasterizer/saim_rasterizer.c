@@ -1,6 +1,8 @@
 #include "saim_rasterizer.h"
 
 #include "saim_mercator.h"
+#include "saim_decoder_jpeg.h"
+#include "saim_decoder_png.h"
 #include "../saim_provider.h"
 #include "../saim_cache.h"
 
@@ -17,7 +19,7 @@ bool saim_rasterizer__create(saim_rasterizer * rasterizer)
 {
 	if (mtx_init(&rasterizer->mutex, mtx_plain) == thrd_error)
 	{
-		fprintf(stderr, "saim: mutex init failed");
+		fprintf(stderr, "saim: mutex init failed\n");
 		return false;
 	}
 	saim_data_pair_list__create(&rasterizer->pending_data);
@@ -68,7 +70,7 @@ int saim_rasterizer__render_aligned(saim_rasterizer * rasterizer,
 	int num_tiles_to_load, optimal_lod;
 	if (rasterizer->target_buffer == 0)
 	{
-		fprintf(stderr, "saim: target buffer hasn't been set");
+		fprintf(stderr, "saim: target buffer hasn't been set\n");
 		return -1;
 	}
 	saim_rasterizer__pre_render(rasterizer,
@@ -86,7 +88,7 @@ int saim_rasterizer__render_common(saim_rasterizer * rasterizer,
 	const float angle_rad = (float)angle * (float)(M_PI / 180.0);
 	if (rasterizer->target_buffer == 0)
 	{
-		fprintf(stderr, "saim: target buffer hasn't been set");
+		fprintf(stderr, "saim: target buffer hasn't been set\n");
 		return -1;
 	}
 	sin_angle = sin(angle_rad);
@@ -145,7 +147,7 @@ const saim_bitmap * saim_rasterizer__get_bitmap(saim_rasterizer * rasterizer, co
 	saim_set_node * node;
 	saim_bitmap_info_pair * pair;
 	node = saim_bitmap_map__search(&rasterizer->bitmap_map, key);
-	if (node != NULL)
+	if (node != rasterizer->bitmap_map.set->nil)
 	{
 		pair = (saim_bitmap_info_pair *) node->data;
 		if (use_counter)
@@ -159,13 +161,13 @@ bool saim_rasterizer__is_requested(saim_rasterizer * rasterizer, const data_key_
 {
 	saim_set_node * node;
 	node = key_set_search(&rasterizer->requested_keys, key);
-	return node != NULL;
+	return node != rasterizer->requested_keys.set->nil;
 }
 bool saim_rasterizer__is_loaded(saim_rasterizer * rasterizer, const data_key_t * key)
 {
 	saim_set_node * node;
 	node = saim_bitmap_map__search(&rasterizer->bitmap_map, key);
-	return node != NULL;
+	return node != rasterizer->bitmap_map.set->nil;
 }
 void saim_rasterizer__add_request(saim_rasterizer * rasterizer, const data_key_t * key)
 {
@@ -174,27 +176,83 @@ void saim_rasterizer__add_request(saim_rasterizer * rasterizer, const data_key_t
 	*key_copy = *key; // copy
 	key_set_insert(&rasterizer->requested_keys, key_copy);
 }
-static void empty_image(saim_bitmap * bitmap)
+static void empty_image(saim_rasterizer * rasterizer, saim_bitmap * bitmap)
 {
-	// TODO
+	// Make data the same bitness as destination bitmap
+	const int kBitmapWidth = s_provider->bitmap_width;
+	const int kBitmapHeight = s_provider->bitmap_height;
+	const int screen_bpp = rasterizer->target_bpp;
+	const int bitmap_size = kBitmapWidth * kBitmapHeight * screen_bpp;
+	unsigned char * data;
+
+	saim_bitmap__destroy(bitmap);
+	saim_bitmap__create(bitmap);
+	bitmap->data = (unsigned char*) SAIM_MALLOC(bitmap_size);
+	data = bitmap->data;
+	switch (screen_bpp)
+	{
+	case 1:
+		for (int i = 0; i < bitmap_size; i += screen_bpp)
+		{
+			*data++ = 0xFF;
+		}
+		break;
+	case 2:
+		for (int i = 0; i < bitmap_size; i += screen_bpp)
+		{
+			// TODO: RGB(1,1,1) to R5G6B5
+			*data++ = 0xFF;
+			*data++ = 0xFF;
+		}
+		break;
+	case 3:
+		for (int i = 0; i < bitmap_size; i += screen_bpp)
+		{
+			*data++ = 0xFF;
+			*data++ = 0xFF;
+			*data++ = 0xFF;
+		}
+		break;
+	case 4:
+		for (int i = 0; i < bitmap_size; i += screen_bpp)
+		{
+			*data++ = 0xFF;
+			*data++ = 0xFF;
+			*data++ = 0xFF;
+			*data++ = 0xFF;
+		}
+		break;
+	default:
+		assert(false && "wrong number of bytes per pixel");
+	}
 }
-static bool decode_png(const saim_string * data, saim_bitmap * bitmap)
+static bool decode_png(saim_rasterizer * rasterizer, const saim_string * data, saim_bitmap * bitmap)
 {
-	// TODO
+	// Width, height and bpp parameters are known
+	int width, height, bpp;
+	saim_decoder_png__load_from_buffer(data, false, &width, &height, &bpp, bitmap);
+	assert(width == s_provider->bitmap_width);
+	assert(height == s_provider->bitmap_height);
+	assert(bpp == s_rasterizer->target_bpp);
 	return true;
 }
-static bool decode_jpg(const saim_string * data, saim_bitmap * bitmap)
+static bool decode_jpg(saim_rasterizer * rasterizer, const saim_string * data, saim_bitmap * bitmap)
 {
-	// TODO
+	// Width, height and bpp parameters are known
+	int width, height, bpp;
+	saim_decoder_jpeg__load_from_buffer(data, false, &width, &height, &bpp, bitmap);
+	assert(width == s_provider->bitmap_width);
+	assert(height == s_provider->bitmap_height);
+	assert(bpp == s_rasterizer->target_bpp);
 	return true;
 }
-static void decode_image(const saim_string * data, saim_bitmap * bitmap)
+static void decode_image(saim_rasterizer * rasterizer, const saim_string * data, saim_bitmap * bitmap)
 {
 	// If we try to decode wrong type of image, our app will crash
 	// So we have to recognize the image type
 	if (data->length < 3) // number of bytes to decode 'PNG' tag
 	{
-		empty_image(bitmap);
+		empty_image(rasterizer, bitmap);
 		return;
 	}
 	if (data->data[1] == 'P' &&
@@ -202,19 +260,19 @@ static void decode_image(const saim_string * data, saim_bitmap * bitmap)
 		data->data[3] == 'G')
 	{
 		// Format is PNG
-		if (!decode_png(data, bitmap))
+		if (!decode_png(rasterizer, data, bitmap))
 		{
-			fprintf(stderr, "saim: PNG image decode error");
-			empty_image(bitmap);
+			fprintf(stderr, "saim: PNG image decode error\n");
+			empty_image(rasterizer, bitmap);
 		}
 	}
 	else
 	{
 		// Format is JPG
-		if (!decode_jpg(data, bitmap))
+		if (!decode_jpg(rasterizer, data, bitmap))
 		{
-			fprintf(stderr, "saim: JPG image decode error");
-			empty_image(bitmap);
+			fprintf(stderr, "saim: JPG image decode error\n");
+			empty_image(rasterizer, bitmap);
 		}
 	}
 }
@@ -263,17 +321,19 @@ void saim_rasterizer__data_transform(saim_rasterizer * rasterizer)
 
 			// Insert a bitmap into our map
             info = (saim_bitmap_cache_info *) SAIM_MALLOC(sizeof(saim_bitmap_cache_info));
+            // saim_bitmap_cache_info is a simple struct
             info->key = *key;
             info->usage = rasterizer->render_counter;
             saim_bitmap_cache_info_list__push_back(&rasterizer->bitmap_cache, info);
             info_pair = (saim_bitmap_info_pair *) SAIM_MALLOC(sizeof(saim_bitmap_info_pair));
+            saim_bitmap_info_pair__create(info_pair);
             info_pair->key = *key;
             node = saim_bitmap_map__insert(&rasterizer->bitmap_map, info_pair);
             info_pair->info.p_usage = & info->usage;
             bitmap = & info_pair->info.bitmap;
 
 			// Pair stores encoded image data, so we have to decode it before use
-			decode_image(&pair->data, bitmap);
+			decode_image(rasterizer, &pair->data, bitmap);
 		}
 
 		// Data is loaded, so no we don't need this key in requested list
@@ -740,7 +800,7 @@ void saim_rasterizer__clear_bitmap_buffer(saim_rasterizer * rasterizer)
 {
 	saim_bitmap_buffer__destroy(&rasterizer->bitmap_buffer);
 }
-inline const saim_buffered_bitmap_info * saim_rasterizer__get_bitmap_from_buffer(saim_rasterizer * rasterizer, int key_x, int key_y)
+const saim_buffered_bitmap_info * saim_rasterizer__get_bitmap_from_buffer(saim_rasterizer * rasterizer, int key_x, int key_y)
 {
 	int x, y, index;
 	saim_bitmap_buffer * buffer = &rasterizer->bitmap_buffer;

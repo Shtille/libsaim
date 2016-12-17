@@ -24,12 +24,12 @@ bool storage_create(storage_t * storage, const char* hash_string)
 {
 	if (mtx_init(&storage->critical_section, mtx_plain) == thrd_error)
 	{
-		fprintf(stderr, "saim: mutex init failed");
+		fprintf(stderr, "saim: mutex init failed\n");
 		return false;
 	}
 	if (mtx_init(&storage->critical_section_key_set, mtx_plain) == thrd_error)
 	{
-		fprintf(stderr, "saim: mutex init failed");
+		fprintf(stderr, "saim: mutex init failed\n");
 		return false;
 	}
 	storage->hash_value = saim_hash(hash_string);
@@ -80,7 +80,7 @@ bool storage_initialize(storage_t * storage)
 			return false;
 		if (result == kStorage_Regenerated) // region storage file has been corrupted
 		{
-			fprintf(stderr, "saim: region '%s' storage file has been broken", pair->name.data);
+			fprintf(stderr, "saim: region '%s' storage file has been broken\n", pair->name.data);
 			pair->info.status = kRegion_Invalid;
 			// Update header file information
 			if (!regions_header_file_update(&storage->regions_header_file, &storage->region_map))
@@ -88,7 +88,7 @@ bool storage_initialize(storage_t * storage)
 		}
 		if (pair->info.status == kRegion_Invalid)
 		{
-			fprintf(stderr, "saim: region '%s' is invalid", pair->name.data);
+			fprintf(stderr, "saim: region '%s' is invalid\n", pair->name.data);
 		}
 		node = saim_set_get_next(storage->region_map.set, node);
 	}
@@ -190,7 +190,7 @@ bool storage_save_separate(storage_t * storage, const data_key_t * key, const sa
 	node = storage_info_map_search(&storage->region_info_map, name);
 	if (node == storage->region_info_map.set->nil)
 	{
-		fprintf(stderr, "saim: did not find region storage with name '%s'", name->data);
+		fprintf(stderr, "saim: did not find region storage with name '%s'\n", name->data);
 		result = false;
 	}
 	else // normal case
@@ -213,7 +213,7 @@ bool storage_region_add(storage_t * storage, const region_info_t * region_info)
 	node = region_map_search(&storage->region_map, &region_info->name);
 	if (node != storage->region_map.set->nil)
 	{
-		fprintf(stderr, "saim: region '%s' already exists", region_info->name.data);
+		fprintf(stderr, "saim: region '%s' already exists\n", region_info->name.data);
 		mtx_unlock(&storage->critical_section);
         return false; // already exists
 	}
@@ -264,7 +264,7 @@ bool storage_region_rename(storage_t * storage, const saim_string * old_name, co
 	node = region_map_search(&storage->region_map, old_name);
 	if (node == storage->region_map.set->nil)
 	{
-		fprintf(stderr, "saim: region '%s' hasn't been found", old_name->data);
+		fprintf(stderr, "saim: region '%s' hasn't been found\n", old_name->data);
 		mtx_unlock(&storage->critical_section);
         return false; // didn't find old one
 	}
@@ -304,7 +304,7 @@ bool storage_region_delete(storage_t * storage, const saim_string * name)
 	node = region_map_search(&storage->region_map, name);
 	if (node == storage->region_map.set->nil)
 	{
-		fprintf(stderr, "saim: region '%s' hasn't been found", name->data);
+		fprintf(stderr, "saim: region '%s' hasn't been found\n", name->data);
 		mtx_unlock(&storage->critical_section);
         return false; // didn't find old one
 	}
@@ -348,7 +348,7 @@ bool storage_region_mark_stored(storage_t * storage, const saim_string * name)
 	node = region_map_search(&storage->region_map, name);
 	if (node == storage->region_map.set->nil)
 	{
-		fprintf(stderr, "saim: region '%s' hasn't been found", name->data);
+		fprintf(stderr, "saim: region '%s' hasn't been found\n", name->data);
 		mtx_unlock(&storage->critical_section);
         return false; // didn't find one
 	}
@@ -378,7 +378,7 @@ bool storage_region_mark_invalid(storage_t * storage, const saim_string * name)
 	node = region_map_search(&storage->region_map, name);
 	if (node == storage->region_map.set->nil)
 	{
-		fprintf(stderr, "saim: region '%s' hasn't been found", name->data);
+		fprintf(stderr, "saim: region '%s' hasn't been found\n", name->data);
 		mtx_unlock(&storage->critical_section);
         return false; // didn't find one
 	}
@@ -472,7 +472,7 @@ initialize_result_t storage_initialize_file(storage_t * storage, storage_info_t 
 	}
 	else if (saim_file_open_for_write(base_file))
 	{
-	    fprintf(stdout, "saim: storage initialization");
+	    fprintf(stdout, "saim: storage initialization\n");
 	    // Seems like file doesn't exist, let's create a new one
 	    saim_storage_file_write_header(&info->file);
 	    if (!base_file->operation_successful)
@@ -520,7 +520,7 @@ bool storage_initialize_regions_header_file(storage_t * storage)
     }
     else if (saim_file_open_for_write(base_file))
     {
-        fprintf(stdout, "saim: regions header file initialization");
+        fprintf(stdout, "saim: regions header file initialization\n");
         // Seems like file doesn't exist, let's create a new one
         regions_header_file_write_header(&storage->regions_header_file);
         if (!base_file->operation_successful)
@@ -610,7 +610,7 @@ bool storage_save(storage_t * storage, const data_key_t * key, const saim_string
 
 	if (data->length == 0)
 	{
-		fprintf(stderr, "saim: curl returned empty data for key(%i,%i,%i)",
+		fprintf(stderr, "saim: curl returned empty data for key(%i,%i,%i)\n",
                       data_key_get_z(key), data_key_get_x(key), data_key_get_y(key));
 		return true;
 	}
@@ -627,7 +627,7 @@ bool storage_save(storage_t * storage, const data_key_t * key, const saim_string
 		need_to_flush = false;
 		if (result == kSave_NeedToFlush)
 		{
-			fprintf(stdout, "saim: storage flush due to reaching hard cap");
+			fprintf(stdout, "saim: storage flush due to reaching hard cap\n");
 			if (saim_storage_file_flush(&info->file))
 			{
 				need_to_flush = true;
