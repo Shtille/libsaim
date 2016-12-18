@@ -1,5 +1,7 @@
 #include "../../../include/saim.h" // main library header
 
+#include "../../../src/rasterizer/saim_decoder_jpeg.h" // to save final image
+
 #include "../../../deps/tinycthread.h" // for thread routines
 
 #include <stdlib.h>
@@ -14,6 +16,7 @@ int main()
     int width, height, bytes_per_pixel;
     int num_tiles_left;
     double upper_latitude, left_longitude, lower_latitude, right_longitude;
+	saim_bitmap bitmap;
 
     // Initialize libsaim
     result = saim_init("", info, flags);
@@ -37,6 +40,11 @@ int main()
         thrd_yield();
     }
     while (num_tiles_left > 0);
+
+	// Store filled buffer to JPEG image
+	bitmap.data = buffer;
+	if (!saim_decoder_jpeg__save("out.jpg", 80, false, width, height, bytes_per_pixel, &bitmap))
+		printf("image saving failed\n");
 
     // Don't forget to free buffer that we've been using
     free(buffer);

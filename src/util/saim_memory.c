@@ -1,11 +1,5 @@
 #include "saim_memory.h"
 
-#include "../../deps/tinycthread.h"
-
-#include <stdio.h>
-
-#define SAIM_MEMORY_DEBUG
-
 /*
 static unsigned int make_hash(const char* filename, int line)
 {
@@ -31,6 +25,10 @@ static unsigned int make_hash(const char* filename, int line)
 
 #ifdef SAIM_MEMORY_DEBUG
 
+#include "../../deps/tinycthread.h"
+
+#include <stdio.h>
+
 static mtx_t s_mutex;
 static int s_number_allocated = 0;
 static size_t s_allocated_bytes = 0;
@@ -55,6 +53,9 @@ void saim_memory_cleanup()
 #ifdef SAIM_MEMORY_DEBUG
 	saim_memory_check();
 	mtx_destroy(&s_mutex);
+#endif
+#ifdef SAIM_VISUAL_STUDIO_MEMORY_DEBUG
+	_CrtDumpMemoryLeaks();
 #endif
 }
 void saim_memory_check()
@@ -111,7 +112,7 @@ void * saim_realloc(void * what, size_t size, const char* filename, int line)
 #endif
 	return realloc(what, size);
 }
-void saim_free(void * what, const char* filename, int line)
+void saim_free(void * what)
 {
 #ifdef SAIM_MEMORY_DEBUG
 	mtx_lock(&s_mutex);

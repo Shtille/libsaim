@@ -57,7 +57,7 @@ void saim_manager__deinitialize_cache()
 }
 bool saim_manager__set_provider(saim_provider_info * provider_info, int flags)
 {
-	const char * kDefaultUrlMask = "http://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{x}/{y}";
+	const char * kDefaultUrlMask = "http://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
 	saim_provider_info default_provider_info;
 	if (provider_info) // user defined provider info
 		memcpy(&default_provider_info, provider_info, sizeof(saim_provider_info));

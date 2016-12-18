@@ -145,7 +145,7 @@ bool storage_is_exist(storage_t * storage, const data_key_t * key)
 bool storage_load(storage_t * storage, key_pair_t * pair, saim_string * data, storage_info_t * info)
 {
 	saim_file * base_file = &info->file.file;
-	stored_key_pair_t * stored_pair = NULL; // to silence warning
+	stored_key_pair_t stored_pair;
 	bool result = false;
 
 	mtx_lock(&storage->critical_section);
@@ -156,9 +156,9 @@ bool storage_load(storage_t * storage, key_pair_t * pair, saim_string * data, st
 		// List contains iterators to map, so we just should sort it
 		key_list_sort(&info->list);
 		// We should update counter value in the file too
-		make_stored_key_pair(stored_pair, pair);
+		make_stored_key_pair(&stored_pair, pair);
 		saim_file_offset_from_beginning(base_file, pair->info.key_offset);
-		saim_storage_file_write_key_pair(&info->file, stored_pair);
+		saim_storage_file_write_key_pair(&info->file, &stored_pair);
 		// Offset to data
 		saim_file_offset_from_beginning(base_file, pair->info.data_offset);
 		// Allocate space for data
@@ -540,6 +540,7 @@ void storage_initialize_key_set(storage_t * storage)
 	saim_set_node *node, *node2;
 	saim_set_node *nil, *nil2;
 	key_pair_t * pair;
+	data_key_t * key_copy;
 	storage_info_pair_t * info_pair;
 
 	key_set_clear(&storage->key_set);
@@ -549,7 +550,9 @@ void storage_initialize_key_set(storage_t * storage)
     while (node != nil)
     {
     	pair = (key_pair_t *)node->data;
-    	key_set_insert(&storage->key_set, &pair->key);
+		key_copy = (data_key_t *)SAIM_MALLOC(sizeof(data_key_t));
+		data_key_set_by_other(key_copy, &pair->key);
+    	key_set_insert(&storage->key_set, key_copy);
     	node = saim_set_get_next(storage->main_info.offsets.set, node);
     }
     // From regions storages
@@ -564,7 +567,9 @@ void storage_initialize_key_set(storage_t * storage)
     	while (node2 != nil2)
     	{
     		pair = (key_pair_t *)node2->data;
-    		key_set_insert(&storage->key_set, &pair->key);
+			key_copy = (data_key_t *)SAIM_MALLOC(sizeof(data_key_t));
+			data_key_set_by_other(key_copy, &pair->key);
+    		key_set_insert(&storage->key_set, key_copy);
     		node2 = saim_set_get_next(info_pair->info.offsets.set, node2);
     	}
     	node = saim_set_get_next(storage->region_info_map.set, node);
@@ -606,6 +611,7 @@ bool storage_save(storage_t * storage, const data_key_t * key, const saim_string
 {
 	saim_file * base_file = &info->file.file;
 	save_result_t result;
+	data_key_t * key_copy;
 	bool need_to_flush;
 
 	if (data->length == 0)
@@ -639,7 +645,12 @@ bool storage_save(storage_t * storage, const data_key_t * key, const saim_string
 		if (need_to_flush)
 			storage_initialize_key_set(storage);
 		else
-			key_set_insert(&storage->key_set, key);
+		{
+			key_copy = (data_key_t *)SAIM_MALLOC(sizeof(data_key_t));
+			data_key_set_by_other(key_copy, key);
+			key_set_insert(&storage->key_set, key_copy);
+		}
+		mtx_unlock(&storage->critical_section_key_set);
 		return result == kSave_Success;
 	}
 	else

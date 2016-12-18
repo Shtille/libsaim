@@ -85,14 +85,15 @@ int saim_rasterizer__render_common(saim_rasterizer * rasterizer,
 {
 	int num_tiles_to_load, optimal_lod;
 	float sin_angle, cos_angle;
-	const float angle_rad = (float)angle * (float)(M_PI / 180.0);
+	const float kDegToRad = 0.017453292f;
+	const float angle_rad = angle * kDegToRad;
 	if (rasterizer->target_buffer == 0)
 	{
 		fprintf(stderr, "saim: target buffer hasn't been set\n");
 		return -1;
 	}
-	sin_angle = sin(angle_rad);
-	cos_angle = cos(angle_rad);
+	sin_angle = sinf(angle_rad);
+	cos_angle = cosf(angle_rad);
 	saim_rasterizer__pre_render(rasterizer,
 		upper_latitude, left_longitude, lower_latitude, right_longitude,
 		&num_tiles_to_load, &optimal_lod);
@@ -173,7 +174,7 @@ void saim_rasterizer__add_request(saim_rasterizer * rasterizer, const data_key_t
 {
 	data_key_t * key_copy;
 	key_copy = (data_key_t *)SAIM_MALLOC(sizeof(data_key_t));
-	*key_copy = *key; // copy
+	data_key_set_by_other(key_copy, key); // copy
 	key_set_insert(&rasterizer->requested_keys, key_copy);
 }
 static void empty_image(saim_rasterizer * rasterizer, saim_bitmap * bitmap)
@@ -464,9 +465,9 @@ void saim_rasterizer__render_aligned_impl(saim_rasterizer * rasterizer,
 			SAIM_FREE(rasterizer->x_pixels);
 		}
 		rasterizer->x_buffer_size = total_buffer_size;
-		rasterizer->x_keys    = (int*) SAIM_MALLOC(rasterizer->x_buffer_size);
-		rasterizer->x_samples = (int*) SAIM_MALLOC(rasterizer->x_buffer_size);
-		rasterizer->x_pixels  = (int*) SAIM_MALLOC(rasterizer->x_buffer_size);
+		rasterizer->x_keys    = (int*) SAIM_MALLOC(rasterizer->x_buffer_size * sizeof(int));
+		rasterizer->x_samples = (int*) SAIM_MALLOC(rasterizer->x_buffer_size * sizeof(int));
+		rasterizer->x_pixels  = (int*) SAIM_MALLOC(rasterizer->x_buffer_size * sizeof(int));
 	}
 	if (rasterizer->y_buffer_size != total_buffer_size)
 	{
@@ -477,9 +478,9 @@ void saim_rasterizer__render_aligned_impl(saim_rasterizer * rasterizer,
 			SAIM_FREE(rasterizer->y_pixels);
 		}
 		rasterizer->y_buffer_size = total_buffer_size;
-		rasterizer->y_keys    = (int*) SAIM_MALLOC(rasterizer->y_buffer_size);
-		rasterizer->y_samples = (int*) SAIM_MALLOC(rasterizer->y_buffer_size);
-		rasterizer->y_pixels  = (int*) SAIM_MALLOC(rasterizer->y_buffer_size);
+		rasterizer->y_keys    = (int*) SAIM_MALLOC(rasterizer->y_buffer_size * sizeof(int));
+		rasterizer->y_samples = (int*) SAIM_MALLOC(rasterizer->y_buffer_size * sizeof(int));
+		rasterizer->y_pixels  = (int*) SAIM_MALLOC(rasterizer->y_buffer_size * sizeof(int));
 	}
 
 	// Copy pointers to variables for faster access
@@ -570,10 +571,10 @@ void saim_rasterizer__render_common_impl(saim_rasterizer * rasterizer,
 
 	int map_size = kBitmapWidth << level_of_detail;
 
-	float frotated_screen_width = fabs((float)screen_width * cos_angle) +
-								  fabs((float)screen_height * sin_angle);
-	float frotated_screen_height = fabs((float)screen_width * sin_angle) +
-								   fabs((float)screen_height * cos_angle);
+	float frotated_screen_width = fabsf((float)screen_width * cos_angle) +
+								  fabsf((float)screen_height * sin_angle);
+	float frotated_screen_height = fabsf((float)screen_width * sin_angle) +
+								   fabsf((float)screen_height * cos_angle);
 	int rotated_screen_width = (int)(frotated_screen_width);
 	int rotated_screen_height = (int)(frotated_screen_height);
 
@@ -595,9 +596,9 @@ void saim_rasterizer__render_common_impl(saim_rasterizer * rasterizer,
 			SAIM_FREE(rasterizer->x_pixels);
 		}
 		rasterizer->x_buffer_size = total_buffer_size;
-		rasterizer->x_keys    = (int*) SAIM_MALLOC(rasterizer->x_buffer_size);
-		rasterizer->x_samples = (int*) SAIM_MALLOC(rasterizer->x_buffer_size);
-		rasterizer->x_pixels  = (int*) SAIM_MALLOC(rasterizer->x_buffer_size);
+		rasterizer->x_keys    = (int*) SAIM_MALLOC(rasterizer->x_buffer_size * sizeof(int));
+		rasterizer->x_samples = (int*) SAIM_MALLOC(rasterizer->x_buffer_size * sizeof(int));
+		rasterizer->x_pixels  = (int*) SAIM_MALLOC(rasterizer->x_buffer_size * sizeof(int));
 	}
 	if (rasterizer->y_buffer_size != total_buffer_size)
 	{
@@ -608,9 +609,9 @@ void saim_rasterizer__render_common_impl(saim_rasterizer * rasterizer,
 			SAIM_FREE(rasterizer->y_pixels);
 		}
 		rasterizer->y_buffer_size = total_buffer_size;
-		rasterizer->y_keys    = (int*) SAIM_MALLOC(rasterizer->y_buffer_size);
-		rasterizer->y_samples = (int*) SAIM_MALLOC(rasterizer->y_buffer_size);
-		rasterizer->y_pixels  = (int*) SAIM_MALLOC(rasterizer->y_buffer_size);
+		rasterizer->y_keys    = (int*) SAIM_MALLOC(rasterizer->y_buffer_size * sizeof(int));
+		rasterizer->y_samples = (int*) SAIM_MALLOC(rasterizer->y_buffer_size * sizeof(int));
+		rasterizer->y_pixels  = (int*) SAIM_MALLOC(rasterizer->y_buffer_size * sizeof(int));
 	}
 
 	// Copy pointers to variables for faster access

@@ -13,6 +13,7 @@ void data_key_create(data_key_t * key, int x, int y, int z);
 void data_key_destroy(data_key_t * key);
 
 void data_key_set(data_key_t * key, int x, int y, int z);
+void data_key_set_by_other(data_key_t * key, const data_key_t * other_key);
 int data_key_get_x(const data_key_t * key);
 int data_key_get_y(const data_key_t * key);
 int data_key_get_z(const data_key_t * key);

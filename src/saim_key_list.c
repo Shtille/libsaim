@@ -7,7 +7,7 @@
 
 static void key_destroy_func(void* p)
 {
-	SAIM_FREE((key_pair_t *)p);
+	// List stores set nodes, thus there's no need in clearing it
 }
 void key_list_create(key_list_t * list)
 {
@@ -31,20 +31,23 @@ void key_list_delete(key_list_t * list, saim_list_node * node)
 	because it simply stores existing set node. */
 	(void)saim_list_delete(&list->list, node);
 }
-static bool key_sort_func(const void * p1, const void * p2)
+static bool key_sort_func(const void * n1, const void * n2)
 {
-	const key_pair_t * pair1 = (const key_pair_t *)p1;
-	const key_pair_t * pair2 = (const key_pair_t *)p2;
+	const saim_set_node * node1 = (saim_set_node *)n1;
+	const saim_set_node * node2 = (saim_set_node *)n2;
+	const key_pair_t * pair1 = (const key_pair_t *)node1->data;
+	const key_pair_t * pair2 = (const key_pair_t *)node2->data;
 	return pair1->info.counter < pair2->info.counter;
 }
 void key_list_sort(key_list_t * list)
 {
 	saim_list_sort(&list->list, key_sort_func);
 }
-static bool size_fit_func(const void* s, const void* p)
+static bool size_fit_func(const void* s, const void* n)
 {
 	const file_size_t * size = (const file_size_t *)s;
-	const key_pair_t * pair = (const key_pair_t *)p;
+	const saim_set_node * node = (saim_set_node *)n;
+	const key_pair_t * pair = (const key_pair_t *)node->data;
 	return *size <= pair->info.size;
 }
 saim_list_node * key_list_find_size_compatible(key_list_t * list, file_size_t size)

@@ -30,7 +30,7 @@ void key_set_insert(key_set_t * set, const data_key_t * key)
 	saim_set_node * node;
 	node = saim_set_search(set->set, key);
 	if (node == set->set->nil)
-		(void)saim_set_insert(set->set, (void *)key);
+		(void)saim_set_insert(set->set, (void*)key);
 }
 void key_set_erase(key_set_t * set, saim_set_node * node)
 {

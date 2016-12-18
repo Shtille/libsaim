@@ -86,6 +86,8 @@ bool saim_tile_service__create(saim_tile_service_t * service)
 		return false;
 	// Init task list
 	saim_list_create(&service->tasks, task_destroy_func);
+	// Don't forget to initialize flag
+	service->finishing = false;
 	return true;
 }
 void saim_tile_service__destroy(saim_tile_service_t * service)

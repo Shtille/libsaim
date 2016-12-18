@@ -30,6 +30,10 @@ void data_key_set(data_key_t * key, int x, int y, int z)
 {
 	key->hash = hash_function(x, y, z);
 }
+void data_key_set_by_other(data_key_t * key, const data_key_t * other_key)
+{
+	key->hash = other_key->hash;
+}
 int data_key_get_x(const data_key_t * key)
 {
 	return (int)((key->hash & kXMask)           )-1;
