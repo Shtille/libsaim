@@ -15,6 +15,10 @@ TARGET_TYPE = static
 TARGET_FILE = $(STATIC_LIB)
 endif
 
+ifeq ($(INSTALL_PATH),)
+INSTALL_PATH = $(TARGET_PATH)
+endif
+
 CC = gcc
 AR = ar rcs
 
@@ -24,6 +28,9 @@ RM = rm -f
 LIB_PATH = $(ROOT_PATH)/src
 
 INCLUDE += -I$(LIB_PATH) -I$(ROOT_PATH)/include
+ifneq ($(CURL_PATH),)
+INCLUDE += -I$(CURL_PATH)/include
+endif
 ifneq ($(JPEG_PATH),)
 INCLUDE += -I$(JPEG_PATH)/include
 endif
@@ -50,16 +57,15 @@ SRC_FILES = $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
 
 OBJECTS = $(SRC_FILES:.c=.o)
 
-LIBRARIES = -L$(TARGET_PATH) -lcurl
+LIBRARIES = -L$(INSTALL_PATH)
+ifneq ($(CURL_LIB),)
+LIBRARIES += -l$(CURL_LIB)
+endif
 ifneq ($(JPEG_LIB),)
 LIBRARIES += -l$(JPEG_LIB)
 endif
 ifneq ($(PNG_LIB),)
 LIBRARIES += -l$(PNG_LIB)
-endif
-
-ifeq ($(INSTALL_PATH),)
-INSTALL_PATH = $(TARGET_PATH)
 endif
 
 all: $(SRC_FILES) $(TARGET)
@@ -68,7 +74,7 @@ all: $(SRC_FILES) $(TARGET)
 $(TARGET): create_dir clean $(TARGET_TYPE) install
 
 create_dir:
-	@test -d $(TARGET_PATH) || mkdir $(TARGET_PATH)
+	@test -d $(INSTALL_PATH) || mkdir $(INSTALL_PATH)
 
 clean:
 	@find $(ROOT_PATH) -name "*.o" -type f -delete

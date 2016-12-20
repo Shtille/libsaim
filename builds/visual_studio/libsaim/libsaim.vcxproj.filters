@@ -105,7 +105,7 @@
     <ClInclude Include="..\..\..\src\saim_file.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\saim_key_list.h">
+    <ClInclude Include="..\..\..\src\saim_map_nodes_list.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\saim_key_offset_map.h">
@@ -239,7 +239,7 @@
     <ClCompile Include="..\..\..\src\saim_file.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\saim_key_list.c">
+    <ClCompile Include="..\..\..\src\saim_map_nodes_list.c">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\saim_key_offset_map.c">

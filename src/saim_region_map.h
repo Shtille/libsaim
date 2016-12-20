@@ -1,5 +1,5 @@
-#ifndef __SAIM_REGION_MAP__
-#define __SAIM_REGION_MAP__
+#ifndef __SAIM_REGION_MAP_H__
+#define __SAIM_REGION_MAP_H__
 
 #include "saim_region_map_pair.h"
 #include "util/saim_set.h"

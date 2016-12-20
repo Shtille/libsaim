@@ -1,5 +1,5 @@
-#ifndef __SAIM_KEY_OFFSET_MAP__
-#define __SAIM_KEY_OFFSET_MAP__
+#ifndef __SAIM_KEY_OFFSET_MAP_H__
+#define __SAIM_KEY_OFFSET_MAP_H__
 
 #include "util/saim_set.h"
 #include "saim_key_pair.h"

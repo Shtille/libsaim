@@ -34,7 +34,6 @@ bool saim_curl_wrapper__download(saim_curl_wrapper_t * curlw, const char* url, v
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, userdata);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, func);
         res = curl_easy_perform(curl);
-        printf("curl_perform returned %d\n", res);
         if (CURLE_OK == res)
             return true;
         else

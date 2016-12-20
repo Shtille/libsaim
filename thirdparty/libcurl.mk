@@ -1,12 +1,12 @@
 # Makefile for Unix
 
-TARGET = z
-ROOT_PATH = .
+LIB_PATH = libcurl/src
+
+TARGET = curl
+ROOT_PATH = ..
 TARGET_PATH = $(ROOT_PATH)/bin
 STATIC_LIB = lib$(TARGET).a
 SHARED_LIB = lib$(TARGET).so
-
-LIB_PATH = $(ROOT_PATH)/thirdparty/zlib/src
 
 ifeq ($(IS_STATIC),NO)
 TARGET_TYPE = dynamic
@@ -22,7 +22,10 @@ AR = ar rcs
 CP = cp
 RM = rm -f
 
-INCLUDE += -I$(LIB_PATH) -I$(LIB_PATH)/../include
+INCLUDE += -I$(LIB_PATH)/../include \
+		   -I$(LIB_PATH)
+
+DEFINES = -DBUILDING_LIBCURL -DCURL_STATICLIB
 
 CFLAGS = -g -Wall -O3 -std=c99
 CFLAGS += $(INCLUDE)
@@ -31,15 +34,15 @@ CFLAGS += $(DEFINES)
 LDFLAGS = -shared -fPIC
 
 SRC_DIRS = $(LIB_PATH)
+SRC_DIRS += $(LIB_PATH)/vauth
+SRC_DIRS += $(LIB_PATH)/vtls
 SRC_FILES = $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
 
 OBJECTS = $(SRC_FILES:.c=.o)
 
 LIBRARIES =
 
-ifeq ($(INSTALL_PATH),)
 INSTALL_PATH = $(TARGET_PATH)
-endif
 
 all: $(SRC_FILES) $(TARGET)
 	@echo All is done!

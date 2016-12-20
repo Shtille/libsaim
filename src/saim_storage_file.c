@@ -157,7 +157,7 @@ bool saim_storage_file_read_header(saim_storage_file * file)
 	saim_file_read_uint(&file->file, &file->blocks_count);
 	return true;
 }
-void saim_storage_file_read_all_keys(saim_storage_file * file, key_offset_map_t * offsets, key_list_t * list)
+void saim_storage_file_read_all_keys(saim_storage_file * file, key_offset_map_t * offsets, saim_map_nodes_list * list)
 {
 	file_offset_t block_offset;
 	block_header_t block_header;
@@ -193,10 +193,10 @@ void saim_storage_file_read_all_keys(saim_storage_file * file, key_offset_map_t 
 			node = key_offset_map_insert(offsets, pair);
 
 			// Add pair pointer into list
-			key_list_insert(list, node);
+			saim_map_nodes_list__insert(list, node);
 	    }
 	}
-	key_list_sort(list);
+	saim_map_nodes_list__sort(list);
 }
 void saim_storage_file_write_key_pair(saim_storage_file * file, const stored_key_pair_t* pair)
 {
@@ -252,7 +252,7 @@ void saim_storage_file_read_block_keys(saim_storage_file * file, block_keys_t *k
 }
 save_result_t saim_storage_file_replace_key(saim_storage_file * file,
 	const data_key_t* key, const saim_string * data,
-    key_offset_map_t * offsets, key_list_t * list)
+    key_offset_map_t * offsets, saim_map_nodes_list * list)
 {
 	file_size_t data_size;
 	saim_list_node * found_list_node;
@@ -264,7 +264,7 @@ save_result_t saim_storage_file_replace_key(saim_storage_file * file,
 	data_size = (file_size_t)data->length;
 
 	// At first we should determine which key is to replace
-	found_list_node = key_list_find_size_compatible(list, data_size);
+	found_list_node = saim_map_nodes_list__find_size_compatible(list, data_size);
 	// Replace existable key struct
 	pair = (key_pair_t *)SAIM_MALLOC(sizeof(key_pair_t));
 	pair->key = *key;
@@ -281,7 +281,7 @@ save_result_t saim_storage_file_replace_key(saim_storage_file * file,
 	else // !found_replace
 	{
 		// Replace first found pair
-		found_list_node = key_list_get_first(list);
+		found_list_node = saim_map_nodes_list__get_first(list);
 		found_node = (saim_set_node *)found_list_node->data;
 		found_pair = (key_pair_t *)found_node->data;
 		pair->info.key_offset = found_pair->info.key_offset;
@@ -303,18 +303,18 @@ save_result_t saim_storage_file_replace_key(saim_storage_file * file,
 	make_stored_key_pair(&stored_pair, pair);
 	saim_storage_file_write_key_pair(file, &stored_pair);
 	// Delete old key from list
-	key_list_delete(list, found_list_node);
+	saim_map_nodes_list__delete(list, found_list_node);
 	// Erase old key from map
 	key_offset_map_erase(offsets, found_node);
 	// Insert a new key pair to map
 	found_node = key_offset_map_insert(offsets, pair);
 	// Add a new key to list
-	key_list_insert(list, found_node);
+	saim_map_nodes_list__insert(list, found_node);
 	return kSave_Success;
 }
 save_result_t saim_storage_file_save_logics(saim_storage_file * file,
 	const data_key_t * key, const saim_string * data,
-	key_offset_map_t * offsets, key_list_t * list)
+	key_offset_map_t * offsets, saim_map_nodes_list * list)
 {
 	file_offset_t header_offset;
 	file_offset_t block_header_size;
@@ -351,7 +351,7 @@ save_result_t saim_storage_file_save_logics(saim_storage_file * file,
 		// Insert pair into the map
 		found_node = key_offset_map_insert(offsets, pair);
 		// Add a new key to list
-		key_list_insert(list, found_node);
+		saim_map_nodes_list__insert(list, found_node);
 		// Create our first block and write a key in there
 		block_header.count = 1U;
 		block_header.next_offset = 0;
@@ -409,7 +409,7 @@ save_result_t saim_storage_file_save_logics(saim_storage_file * file,
 						// Insert pair into the map
 						found_node = key_offset_map_insert(offsets, pair);
 						// Add a new key to list
-						key_list_insert(list, found_node);
+						saim_map_nodes_list__insert(list, found_node);
 						// Write a new key in the new block
 						block_header.count = 1U;
 						block_header.next_offset = 0;
@@ -466,7 +466,7 @@ save_result_t saim_storage_file_save_logics(saim_storage_file * file,
 					// Insert pair into the map
 					found_node = key_offset_map_insert(offsets, pair);
 					// Add a new key to list
-					key_list_insert(list, found_node);
+					saim_map_nodes_list__insert(list, found_node);
 					// Write key-offset pair
 					saim_file_offset_from_current(&file->file, key_displacement);
 					make_stored_key_pair(&stored_pair, pair);

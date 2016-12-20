@@ -1,15 +1,15 @@
 # Makefile for Unix
 
-LIB_PATH = libpng/src
-ZLIB_PATH = zlib
-
-include libpng-sources.mk
-
 TARGET = png
-ROOT_PATH = ..
+ROOT_PATH = .
 TARGET_PATH = $(ROOT_PATH)/bin
 STATIC_LIB = lib$(TARGET).a
 SHARED_LIB = lib$(TARGET).so
+
+LIB_PATH = $(ROOT_PATH)/thirdparty/libpng/src
+ZLIB_PATH = $(ROOT_PATH)/thirdparty/zlib
+
+include $(ROOT_PATH)/thirdparty/libpng-sources.mk
 
 ifeq ($(IS_STATIC),NO)
 TARGET_TYPE = dynamic
@@ -42,7 +42,9 @@ OBJECTS = $(SRC_FILES:.c=.o)
 
 LIBRARIES = -lz
 
+ifeq ($(INSTALL_PATH),)
 INSTALL_PATH = $(TARGET_PATH)
+endif
 
 all: $(SRC_FILES) $(TARGET)
 	@echo All is done!

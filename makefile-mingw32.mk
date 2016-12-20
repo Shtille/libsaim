@@ -15,6 +15,10 @@ TARGET_TYPE = static
 TARGET_FILE = $(STATIC_LIB)
 endif
 
+ifeq ($(INSTALL_PATH),)
+INSTALL_PATH = $(TARGET_PATH)
+endif
+
 CC = gcc
 AR = ar rcs
 
@@ -23,7 +27,16 @@ RM = @del /Q
 
 LIB_PATH = $(ROOT_PATH)\src
 
-INCLUDE += -I$(LIB_PATH) -I$(ROOT_PATH)\include -I$(CURL_PATH)\include
+INCLUDE += -I$(LIB_PATH) -I$(ROOT_PATH)\include
+ifneq ($(CURL_PATH),)
+INCLUDE += -I$(CURL_PATH)\include
+endif
+ifneq ($(JPEG_PATH),)
+INCLUDE += -I$(JPEG_PATH)\include
+endif
+ifneq ($(PNG_PATH),)
+INCLUDE += -I$(PNG_PATH)\include
+endif
 
 DEFINES = -DBUILDING_LIBSAIM
 ifneq ($(IS_STATIC),NO)
@@ -44,31 +57,41 @@ SRC_FILES = $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
 
 OBJECTS = $(SRC_FILES:.c=.o)
 
-LIBRARIES =
+LIBRARIES = -L$(INSTALL_PATH)
+ifneq ($(CURL_LIB),)
+LIBRARIES += -l$(CURL_LIB)
+endif
+ifneq ($(JPEG_LIB),)
+LIBRARIES += -l$(JPEG_LIB)
+endif
+ifneq ($(PNG_LIB),)
+LIBRARIES += -l$(PNG_LIB)
+endif
 
 all: $(SRC_FILES) $(TARGET)
 	@echo All is done!
 
-$(TARGET): create_dir clean $(TARGET_TYPE)
+$(TARGET): create_dir clean $(TARGET_TYPE) install
 
 create_dir:
-	@if not exist $(TARGET_PATH) mkdir $(TARGET_PATH)
+	@if not exist $(INSTALL_PATH) mkdir $(INSTALL_PATH)
 
 clean:
 	@for /r %%R in (*.o) do (if exist %%R del /Q %%R)
-	@if exist $(ROOT_PATH)\bin\$(TARGET_FILE) $(RM) $(ROOT_PATH)\bin\$(TARGET_FILE)
+
+install:
+	@echo installing to $(INSTALL_PATH)
+	@if exist $(INSTALL_PATH)\$(TARGET_FILE) $(RM) $(INSTALL_PATH)\$(TARGET_FILE)
+	@$(CP) $(TARGET_FILE) $(INSTALL_PATH)\$(TARGET_FILE)
+	@$(RM) $(TARGET_FILE)
     
 static: $(OBJECTS)
 	@echo making static library
 	@$(AR) $(STATIC_LIB) $(OBJECTS)
-	@$(CP) $(STATIC_LIB) $(TARGET_PATH)\$(STATIC_LIB)
-	@$(RM) $(STATIC_LIB)
 	
 dynamic: $(OBJECTS)
 	@echo making shared library
 	@$(CC) $(LDFLAGS) -o $(SHARED_LIB) $^ $(LIBRARIES)
-	@$(CP) $(SHARED_LIB) $(TARGET_PATH)\$(SHARED_LIB)
-	@$(RM) $(SHARED_LIB)
 
 %.o : %.c
 	@echo compiling file $<

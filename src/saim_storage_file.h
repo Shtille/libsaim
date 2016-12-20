@@ -3,7 +3,7 @@
 
 #include "saim_file.h"
 #include "saim_key_offset_map.h"
-#include "saim_key_list.h"
+#include "saim_map_nodes_list.h"
 
 #define SAIM_FILE_BLOCK_CAPACITY 100
 
@@ -40,11 +40,11 @@ void saim_storage_file_write_header(saim_storage_file * file);
 
 // Read operations
 bool saim_storage_file_read_header(saim_storage_file * file);
-void saim_storage_file_read_all_keys(saim_storage_file * file, key_offset_map_t * offsets, key_list_t * list);
+void saim_storage_file_read_all_keys(saim_storage_file * file, key_offset_map_t * offsets, saim_map_nodes_list * list);
 
 save_result_t saim_storage_file_save_logics(saim_storage_file * file,
 	const data_key_t * key, const saim_string * data,
-	key_offset_map_t * offsets, key_list_t * list);
+	key_offset_map_t * offsets, saim_map_nodes_list * list);
 
 typedef struct {
     unsigned int count;         //!< number of used blocks
@@ -64,6 +64,6 @@ void saim_storage_file_write_block_keys(saim_storage_file * file, const block_ke
 void saim_storage_file_read_block_keys(saim_storage_file * file, block_keys_t *keys);
 save_result_t saim_storage_file_replace_key(saim_storage_file * file,
 	const data_key_t* key, const saim_string * data,
-    key_offset_map_t * offsets, key_list_t * list);
+    key_offset_map_t * offsets, saim_map_nodes_list * list);
 
 #endif

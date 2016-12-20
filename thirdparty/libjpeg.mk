@@ -1,14 +1,14 @@
 # Makefile for Unix
 
-LIB_PATH = libjpeg/src
-
-include libjpeg-sources.mk
-
 TARGET = jpeg
-ROOT_PATH = ..
+ROOT_PATH = .
 TARGET_PATH = $(ROOT_PATH)/bin
 STATIC_LIB = lib$(TARGET).a
 SHARED_LIB = lib$(TARGET).so
+
+LIB_PATH = $(ROOT_PATH)/thirdparty/libjpeg/src
+
+include $(ROOT_PATH)/thirdparty/libjpeg-sources.mk
 
 ifeq ($(IS_STATIC),NO)
 TARGET_TYPE = dynamic
@@ -36,7 +36,9 @@ OBJECTS = $(SRC_FILES:.c=.o)
 
 LIBRARIES =
 
+ifeq ($(INSTALL_PATH),)
 INSTALL_PATH = $(TARGET_PATH)
+endif
 
 all: $(SRC_FILES) $(TARGET)
 	@echo All is done!

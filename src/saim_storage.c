@@ -154,7 +154,7 @@ bool storage_load(storage_t * storage, key_pair_t * pair, saim_string * data, st
 		// Increase counter of found element in the map
 		++pair->info.counter;
 		// List contains iterators to map, so we just should sort it
-		key_list_sort(&info->list);
+		saim_map_nodes_list__sort(&info->list);
 		// We should update counter value in the file too
 		make_stored_key_pair(&stored_pair, pair);
 		saim_file_offset_from_beginning(base_file, pair->info.key_offset);
@@ -638,7 +638,7 @@ bool storage_save(storage_t * storage, const data_key_t * key, const saim_string
 			{
 				need_to_flush = true;
 				key_offset_map_clear(&info->offsets);
-				key_list_clear(&info->list);
+				saim_map_nodes_list__clear(&info->list);
 			}
 		}
 		mtx_lock(&storage->critical_section_key_set);
