@@ -7,25 +7,25 @@
 
 #include "../deps/tinycthread.h"
 
-typedef struct saim_region_service_t saim_region_service_t;
+typedef struct saim_region_service saim_region_service;
 
-struct saim_region_service_t {
+struct saim_region_service {
 	mtx_t critical_section;				//!< critical section handle
 	thrd_t thread;						//!< thread handle
-	saim_curl_wrapper_t curl_wrapper;	//!< each service has its own instance of curl wrapper
+	saim_curl_wrapper curl_wrapper;	//!< each service has its own instance of curl wrapper
 	saim_list tasks;					//!< tasks list
 	bool finishing;						//!< finishing flag
 };
 
-bool saim_region_service__create(saim_region_service_t * service);
-void saim_region_service__destroy(saim_region_service_t * service);
+bool saim_region_service__create(saim_region_service * service);
+void saim_region_service__destroy(saim_region_service * service);
 
-void saim_region_service__run_service(saim_region_service_t * service);
-void saim_region_service__stop_service(saim_region_service_t * service);
+void saim_region_service__run_service(saim_region_service * service);
+void saim_region_service__stop_service(saim_region_service * service);
 
-void saim_region_service__clear_tasks(saim_region_service_t * service);
-void saim_region_service__add_task(saim_region_service_t * service, saim_region_service_task_t * task);
+void saim_region_service__clear_tasks(saim_region_service * service);
+void saim_region_service__add_task(saim_region_service * service, saim_region_service_task * task);
 
-unsigned int saim_region_service__get_pending_count(saim_region_service_t * service);
+unsigned int saim_region_service__get_pending_count(saim_region_service * service);
 
 #endif

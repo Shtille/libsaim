@@ -6,12 +6,12 @@
 
 typedef struct {
 	saim_string name;
-	stored_region_info_t info;
-} region_map_pair_t;
+	saim_stored_region_info info;
+} saim_region_map_pair;
 
-void region_map_pair_create(region_map_pair_t * pair);
-void region_map_pair_destroy(region_map_pair_t * pair);
+void saim_region_map_pair__create(saim_region_map_pair * pair);
+void saim_region_map_pair__destroy(saim_region_map_pair * pair);
 
-int region_map_pair_compare(const region_map_pair_t * a, const region_map_pair_t * b);
+int saim_region_map_pair__compare(const saim_region_map_pair * a, const saim_region_map_pair * b);
 
 #endif

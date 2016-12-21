@@ -19,7 +19,7 @@ typedef struct {
 
 	mtx_t mutex;						//!< mutex to protect pending data
 	saim_data_pair_list pending_data;   //!< data that pending for conversion
-	key_set_t requested_keys;           //!< to not make another calls if already requested
+	saim_key_set requested_keys;           //!< to not make another calls if already requested
 	saim_bitmap_map bitmap_map;         //!< extracted bitmaps
 	int x_buffer_size;                  //!< size of x buffer
 	int y_buffer_size;                  //!< size of y buffer

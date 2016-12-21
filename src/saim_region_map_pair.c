@@ -1,16 +1,16 @@
 #include "saim_region_map_pair.h"
 
-void region_map_pair_create(region_map_pair_t * pair)
+void saim_region_map_pair__create(saim_region_map_pair * pair)
 {
 	saim_string_create(&pair->name);
-	stored_region_info_create(&pair->info);
+	saim_stored_region_info__create(&pair->info);
 }
-void region_map_pair_destroy(region_map_pair_t * pair)
+void saim_region_map_pair__destroy(saim_region_map_pair * pair)
 {
 	saim_string_destroy(&pair->name);
-	stored_region_info_destroy(&pair->info);
+	saim_stored_region_info__destroy(&pair->info);
 }
-int region_map_pair_compare(const region_map_pair_t * a, const region_map_pair_t * b)
+int saim_region_map_pair__compare(const saim_region_map_pair * a, const saim_region_map_pair * b)
 {
 	return saim_string_compare(&a->name, &b->name);
 }

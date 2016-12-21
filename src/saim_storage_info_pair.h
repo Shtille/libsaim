@@ -6,12 +6,12 @@
 
 typedef struct {
 	saim_string name;
-	storage_info_t info;
-} storage_info_pair_t;
+	saim_storage_info info;
+} saim_storage_info_pair;
 
-void storage_info_pair_create(storage_info_pair_t * pair);
-void storage_info_pair_destroy(storage_info_pair_t * pair);
+void saim_storage_info_pair__create(saim_storage_info_pair * pair);
+void saim_storage_info_pair__destroy(saim_storage_info_pair * pair);
 
-int storage_info_pair_compare(const storage_info_pair_t * a, const storage_info_pair_t * b);
+int saim_storage_info_pair__compare(const saim_storage_info_pair * a, const saim_storage_info_pair * b);
 
 #endif

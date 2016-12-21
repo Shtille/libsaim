@@ -6,16 +6,16 @@
 
 typedef struct {
 	saim_set * set;
-} key_set_t;
+} saim_key_set;
 
-void key_set_create(key_set_t * set);
-void key_set_destroy(key_set_t * set);
+void saim_key_set__create(saim_key_set * set);
+void saim_key_set__destroy(saim_key_set * set);
 
-void key_set_clear(key_set_t * set);
-void key_set_insert(key_set_t * set, const data_key_t * key);
-void key_set_erase(key_set_t * set, saim_set_node * node);
-saim_set_node * key_set_search(key_set_t * set, const data_key_t * key);
+void saim_key_set__clear(saim_key_set * set);
+void saim_key_set__insert(saim_key_set * set, const data_key_t * key);
+void saim_key_set__erase(saim_key_set * set, saim_set_node * node);
+saim_set_node * saim_key_set__search(saim_key_set * set, const data_key_t * key);
 
-unsigned int key_set_size(key_set_t * set);
+unsigned int saim_key_set__size(saim_key_set * set);
 
 #endif

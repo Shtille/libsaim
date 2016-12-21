@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 
-bool saim_curl_wrapper__create(saim_curl_wrapper_t * curlw)
+bool saim_curl_wrapper__create(saim_curl_wrapper * curlw)
 {
 	curlw->curl = curl_easy_init();
 	if (!curlw->curl)
@@ -14,12 +14,12 @@ bool saim_curl_wrapper__create(saim_curl_wrapper_t * curlw)
 	}
     return true;
 }
-void saim_curl_wrapper__destroy(saim_curl_wrapper_t * curlw)
+void saim_curl_wrapper__destroy(saim_curl_wrapper * curlw)
 {
 	if (curlw->curl)
 		curl_easy_cleanup(curlw->curl);
 }
-bool saim_curl_wrapper__download(saim_curl_wrapper_t * curlw, const char* url, void* userdata, CurlWriteFunction func)
+bool saim_curl_wrapper__download(saim_curl_wrapper * curlw, const char* url, void* userdata, CurlWriteFunction func)
 {
 	void* curl = curlw->curl;
 

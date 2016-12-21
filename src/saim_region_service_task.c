@@ -14,9 +14,9 @@ static size_t on_data_received(void* buffer, size_t size, size_t nmemb, void* us
 	return nmemb * size;
 }
 
-void saim_region_service_task__create(saim_region_service_task_t * task, 
-	struct storage_t * storage,
-	struct saim_curl_wrapper_t * curl_wrapper,
+void saim_region_service_task__create(saim_region_service_task * task, 
+	struct saim_storage * storage,
+	struct saim_curl_wrapper * curl_wrapper,
 	saim_region_notification_function function,
 	const data_key_t * key,
 	const saim_string * region_name)
@@ -29,12 +29,12 @@ void saim_region_service_task__create(saim_region_service_task_t * task,
 	saim_string_create(&task->region_name);
 	saim_string_set(&task->region_name, region_name);
 }
-void saim_region_service_task__destroy(saim_region_service_task_t * task)
+void saim_region_service_task__destroy(saim_region_service_task * task)
 {
 	saim_string_destroy(&task->data);
 	saim_string_destroy(&task->region_name);
 }
-bool saim_region_service_task__execute(saim_region_service_task_t * task)
+bool saim_region_service_task__execute(saim_region_service_task * task)
 {
 	char url_buffer[260];
 	// Setup working key to make buffer be filled properly
@@ -42,12 +42,12 @@ bool saim_region_service_task__execute(saim_region_service_task_t * task)
 	return saim_curl_wrapper__download(task->curl_wrapper,
 		url_buffer, (void*)&task->data, on_data_received);
 }
-void saim_region_service_task__notify(saim_region_service_task_t * task, bool success)
+void saim_region_service_task__notify(saim_region_service_task * task, bool success)
 {
 	if (success)
 	{
 		// Save data to the separate storage
-		if (storage_save_separate(task->storage, &task->key, &task->data, &task->region_name))
+		if (saim_storage__save_separate(task->storage, &task->key, &task->data, &task->region_name))
 		{
 			// Then notify main observer (to let copy or move data)
 			if (task->function)

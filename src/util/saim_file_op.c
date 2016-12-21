@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-void saim_file_op_delete(const char* filename)
+void saim_file_op__delete(const char* filename)
 {
 	remove(filename);
 }

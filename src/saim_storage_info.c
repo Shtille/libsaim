@@ -2,13 +2,13 @@
 
 #include <stdlib.h>
 
-void storage_info_create(storage_info_t * info)
+void saim_storage_info__create(saim_storage_info * info)
 {
-	key_offset_map_create(&info->offsets);
+	saim_key_offset_map__create(&info->offsets);
 	saim_map_nodes_list__create(&info->list);
 }
-void storage_info_destroy(storage_info_t * info)
+void saim_storage_info__destroy(saim_storage_info * info)
 {
-	key_offset_map_destroy(&info->offsets);
+	saim_key_offset_map__destroy(&info->offsets);
 	saim_map_nodes_list__destroy(&info->list);
 }

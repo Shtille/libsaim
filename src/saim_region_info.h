@@ -21,24 +21,24 @@ typedef struct {
 	double lower_latitude;	//!< lower latitude of bounding box
 	double right_longitude;	//!< right longitude of bounding box
 	saim_string name;		//!< name of a region
-} region_info_t;
+} saim_region_info;
 
 //! Stored region information
 typedef struct {
-	region_info_t info;		//!< region information
+	saim_region_info info;		//!< region information
 	unsigned int status;	//!< region status
 	time_t time;			//!< region data time
 	saim_string filename;	//!< region storage filename
-} stored_region_info_t;
+} saim_stored_region_info;
 
 #pragma pack(pop)
 
-void region_info_create(region_info_t * info);
-void region_info_destroy(region_info_t * info);
-void region_info_copy(region_info_t * dest, const region_info_t * src);
+void saim_region_info__create(saim_region_info * info);
+void saim_region_info__destroy(saim_region_info * info);
+void saim_region_info__copy(saim_region_info * dest, const saim_region_info * src);
 
-void stored_region_info_create(stored_region_info_t * info);
-void stored_region_info_destroy(stored_region_info_t * info);
-void stored_region_info_copy(stored_region_info_t * dst, const stored_region_info_t * src);
+void saim_stored_region_info__create(saim_stored_region_info * info);
+void saim_stored_region_info__destroy(saim_stored_region_info * info);
+void saim_stored_region_info__copy(saim_stored_region_info * dst, const saim_stored_region_info * src);
 
 #endif

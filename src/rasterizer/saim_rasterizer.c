@@ -23,7 +23,7 @@ bool saim_rasterizer__create(saim_rasterizer * rasterizer)
 		return false;
 	}
 	saim_data_pair_list__create(&rasterizer->pending_data);
-	key_set_create(&rasterizer->requested_keys);
+	saim_key_set__create(&rasterizer->requested_keys);
 	saim_bitmap_map__create(&rasterizer->bitmap_map);
 	saim_bitmap_buffer__create(&rasterizer->bitmap_buffer);
 	saim_bitmap_cache_info_list__create(&rasterizer->bitmap_cache);
@@ -48,7 +48,7 @@ void saim_rasterizer__destroy(saim_rasterizer * rasterizer)
 	saim_bitmap_cache_info_list__destroy(&rasterizer->bitmap_cache);
 	saim_bitmap_buffer__destroy(&rasterizer->bitmap_buffer);
 	saim_bitmap_map__destroy(&rasterizer->bitmap_map);
-	key_set_destroy(&rasterizer->requested_keys);
+	saim_key_set__destroy(&rasterizer->requested_keys);
 	saim_data_pair_list__destroy(&rasterizer->pending_data);
 	mtx_destroy(&rasterizer->mutex);
 	if (rasterizer->x_buffer_size)
@@ -130,7 +130,7 @@ void saim_rasterizer__push_request(saim_rasterizer * rasterizer, const data_key_
         saim_rasterizer__add_request(rasterizer, key);
 
         // Perform query for each key that hasn't been loaded
-        saim_cache_tile_service_load_query(s_cache, key, tile_notification_function);
+        saim_cache__tile_service_load_query(s_cache, key, tile_notification_function);
     }
 }
 void saim_rasterizer__clear(saim_rasterizer * rasterizer)
@@ -139,7 +139,7 @@ void saim_rasterizer__clear(saim_rasterizer * rasterizer)
 	saim_data_pair_list__clear(&rasterizer->pending_data);
 	mtx_unlock(&rasterizer->mutex);
 
-	key_set_clear(&rasterizer->requested_keys);
+	saim_key_set__clear(&rasterizer->requested_keys);
 	saim_bitmap_map__clear(&rasterizer->bitmap_map);
 	saim_bitmap_cache_info_list__clear(&rasterizer->bitmap_cache);
 }
@@ -161,7 +161,7 @@ const saim_bitmap * saim_rasterizer__get_bitmap(saim_rasterizer * rasterizer, co
 bool saim_rasterizer__is_requested(saim_rasterizer * rasterizer, const data_key_t * key)
 {
 	saim_set_node * node;
-	node = key_set_search(&rasterizer->requested_keys, key);
+	node = saim_key_set__search(&rasterizer->requested_keys, key);
 	return node != rasterizer->requested_keys.set->nil;
 }
 bool saim_rasterizer__is_loaded(saim_rasterizer * rasterizer, const data_key_t * key)
@@ -175,7 +175,7 @@ void saim_rasterizer__add_request(saim_rasterizer * rasterizer, const data_key_t
 	data_key_t * key_copy;
 	key_copy = (data_key_t *)SAIM_MALLOC(sizeof(data_key_t));
 	data_key_set_by_other(key_copy, key); // copy
-	key_set_insert(&rasterizer->requested_keys, key_copy);
+	saim_key_set__insert(&rasterizer->requested_keys, key_copy);
 }
 static void empty_image(saim_rasterizer * rasterizer, saim_bitmap * bitmap)
 {
@@ -338,8 +338,8 @@ void saim_rasterizer__data_transform(saim_rasterizer * rasterizer)
 		}
 
 		// Data is loaded, so no we don't need this key in requested list
-		node = key_set_search(&rasterizer->requested_keys, key);
-		key_set_erase(&rasterizer->requested_keys, node);
+		node = saim_key_set__search(&rasterizer->requested_keys, key);
+		saim_key_set__erase(&rasterizer->requested_keys, node);
 
 		// Finally
 		saim_data_pair__destroy(pair);
@@ -409,7 +409,7 @@ void saim_rasterizer__pre_render(saim_rasterizer * rasterizer,
                 else
                 {
                     // Poor internet fix to push low detailed cached bitmaps to load
-                    if (!lazy_bitmap_found && saim_cache_is_exist(s_cache, &key_low))
+                    if (!lazy_bitmap_found && saim_cache__is_exist(s_cache, &key_low))
                     {
                         lazy_bitmap_found = true;
                         saim_rasterizer__push_request(rasterizer, &key_low);

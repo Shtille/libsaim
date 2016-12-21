@@ -4,12 +4,12 @@
 #include "saim_storage_file.h"
 
 typedef struct {
-	saim_storage_file file;		//!< storage file handler
-	key_offset_map_t offsets;	//!< offsets map
-	saim_map_nodes_list list;			//!< need to get fast access to a key with lowest counter
-} storage_info_t;
+	saim_storage_file file;			//!< storage file handler
+	saim_key_offset_map offsets;	//!< offsets map
+	saim_map_nodes_list list;		//!< need to get fast access to a key with lowest counter
+} saim_storage_info;
 
-void storage_info_create(storage_info_t * info);
-void storage_info_destroy(storage_info_t * info);
+void saim_storage_info__create(saim_storage_info * info);
+void saim_storage_info__destroy(saim_storage_info * info);
 
 #endif

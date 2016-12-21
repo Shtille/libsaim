@@ -16,71 +16,71 @@ typedef enum {
 	kStorage_Regenerated
 } initialize_result_t;
 
-typedef struct storage_t storage_t;
+typedef struct saim_storage saim_storage;
 
-struct storage_t {
-	unsigned int hash_value;				//!< stored hash value for selected provider
-	mtx_t critical_section;					//!< critical section handle
-	mtx_t critical_section_key_set;			//!< critical section handle for key set
-	key_set_t key_set;						//!< set of keys, done for fast rendering access
-	storage_info_t main_info;				//!< tile service data main file
-	regions_header_file_t regions_header_file;
-	region_map_t region_map;				//!< map with regions information
-	storage_info_map_t region_info_map;		//!< map with regions data information
+struct saim_storage {
+	unsigned int hash_value;						//!< stored hash value for selected provider
+	mtx_t critical_section;							//!< critical section handle
+	mtx_t critical_section_key_set;					//!< critical section handle for key set
+	saim_key_set key_set;							//!< set of keys, done for fast rendering access
+	saim_storage_info main_info;					//!< tile service data main file
+	saim_regions_header_file regions_header_file;	//!< header file for regions
+	saim_region_map region_map;						//!< map with regions information
+	saim_storage_info_map saim_region_info__map;	//!< map with regions data information
 };
 
 /* =========== External functions =========== */
 
-bool storage_create(storage_t * storage, const char* hash_string);
-void storage_destroy(storage_t * storage);
+bool saim_storage__create(saim_storage * storage, const char* hash_string);
+void saim_storage__destroy(saim_storage * storage);
 
 //! Storage initialization
-bool storage_initialize(storage_t * storage);
+bool saim_storage__initialize(saim_storage * storage);
 
 //! Called by tile service, finds storage for a key
-key_pair_t * storage_get_key_pair(storage_t * storage, const data_key_t * key, storage_info_t ** storage_info);
+key_pair_t * saim_storage__get_key_pair(saim_storage * storage, const data_key_t * key, saim_storage_info ** storage_info);
 
 //! Called by rendering thread, checks whether key is in any storage
-bool storage_is_exist(storage_t * storage, const data_key_t * key);
+bool saim_storage__is_exist(saim_storage * storage, const data_key_t * key);
 
 //! Called by tile service, loads data from a chosen source
-bool storage_load(storage_t * storage, key_pair_t * pair, saim_string * data, storage_info_t * info);
+bool saim_storage__load(saim_storage * storage, key_pair_t * pair, saim_string * data, saim_storage_info * info);
 
 //! Called by tile service, saves data to main storage file
-bool storage_save_main(storage_t * storage, const data_key_t * key, const saim_string * data);
+bool saim_storage__save_main(saim_storage * storage, const data_key_t * key, const saim_string * data);
 
 //! Called by region service, saves data to some named region storage file
-bool storage_save_separate(storage_t * storage, const data_key_t * key, const saim_string * data, const saim_string * name);
+bool saim_storage__save_separate(saim_storage * storage, const data_key_t * key, const saim_string * data, const saim_string * name);
 
-bool storage_region_add(storage_t * storage, const region_info_t * region_info);
-bool storage_region_rename(storage_t * storage, const saim_string * old_name, const saim_string * new_name);
-bool storage_region_delete(storage_t * storage, const saim_string * name);
-bool storage_region_mark_stored(storage_t * storage, const saim_string * name);
-bool storage_region_mark_invalid(storage_t * storage, const saim_string * name);
+bool saim_storage__region_add(saim_storage * storage, const saim_region_info * region_info);
+bool saim_storage__region_rename(saim_storage * storage, const saim_string * old_name, const saim_string * new_name);
+bool saim_storage__region_delete(saim_storage * storage, const saim_string * name);
+bool saim_storage__region_mark_stored(saim_storage * storage, const saim_string * name);
+bool saim_storage__region_mark_invalid(saim_storage * storage, const saim_string * name);
 
 //! Returns information about region
-bool storage_get_region_info(storage_t * storage, const saim_string * name, stored_region_info_t ** info);
+bool saim_storage__get_region_info(saim_storage * storage, const saim_string * name, saim_stored_region_info ** info);
 //! Returns information about regions
-//bool storage_get_regions_info(storage_t * storage, std::vector<StoredRegionInfo>& regions_info);
+//bool storage_get_regions_info(saim_storage * storage, std::vector<StoredRegionInfo>& regions_info);
 //! Returns region file size in bytes
-big_file_size_t storage_get_region_file_size(storage_t * storage, const saim_string * name);
+big_file_size_t saim_storage__get_region_file_size(saim_storage * storage, const saim_string * name);
 
-unsigned int storage_get_key_count(storage_t * storage);
+unsigned int saim_storage__get_key_count(saim_storage * storage);
 
 //! Estimated storage file size for specified number of tiles and average data size
-big_file_size_t storage_get_estimated_file_size(unsigned int num_tiles, unsigned int data_size);
+big_file_size_t saim_storage__get_estimated_file_size(unsigned int num_tiles, unsigned int data_size);
 
 //! Maximum storage file size for a region
-big_file_size_t storage_get_maximum_region_file_size();
+big_file_size_t saim_storage__get_maximum_region_file_size();
 
 /* =========== Internal functions =========== */
 
-initialize_result_t storage_initialize_file(storage_t * storage, storage_info_t * info);
-bool storage_initialize_regions_header_file(storage_t * storage);
-void storage_initialize_key_set(storage_t * storage);
-void storage_deinitialize_regions(storage_t * storage);
-void storage_deinitialize(storage_t * storage);
-void storage_generate_region_file_name(storage_t * storage, char* buffer);
-bool storage_save(storage_t * storage, const data_key_t * key, const saim_string * data, storage_info_t * info);
+initialize_result_t saim_storage__initialize_file(saim_storage * storage, saim_storage_info * info);
+bool saim_storage__initialize_regions_header_file(saim_storage * storage);
+void saim_storage__initialize_key_set(saim_storage * storage);
+void saim_storage__deinitialize_regions(saim_storage * storage);
+void saim_storage__deinitialize(saim_storage * storage);
+void saim_storage__generate_region_file_name(saim_storage * storage, char* buffer);
+bool saim_storage__save(saim_storage * storage, const data_key_t * key, const saim_string * data, saim_storage_info * info);
 
 #endif

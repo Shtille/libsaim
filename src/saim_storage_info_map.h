@@ -6,15 +6,15 @@
 
 typedef struct {
 	saim_set * set;
-} storage_info_map_t;
+} saim_storage_info_map;
 
-void storage_info_map_create(storage_info_map_t * map);
-void storage_info_map_destroy(storage_info_map_t * map);
+void saim_storage_info_map__create(saim_storage_info_map * map);
+void saim_storage_info_map__destroy(saim_storage_info_map * map);
 
-void storage_info_map_clear(storage_info_map_t * map);
-saim_set_node * storage_info_map_insert(storage_info_map_t * map, storage_info_pair_t * pair);
-void storage_info_map_erase(storage_info_map_t * map, saim_set_node * node);
-void storage_info_map_cut(storage_info_map_t * map, saim_set_node * node);
-saim_set_node * storage_info_map_search(storage_info_map_t * map, const saim_string * name);
+void saim_storage_info_map__clear(saim_storage_info_map * map);
+saim_set_node * saim_storage_info_map__insert(saim_storage_info_map * map, saim_storage_info_pair * pair);
+void saim_storage_info_map__erase(saim_storage_info_map * map, saim_set_node * node);
+void saim_storage_info_map__cut(saim_storage_info_map * map, saim_set_node * node);
+saim_set_node * saim_storage_info_map__search(saim_storage_info_map * map, const saim_string * name);
 
 #endif

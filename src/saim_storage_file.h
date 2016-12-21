@@ -22,29 +22,29 @@ typedef enum {
     kSave_NeedToFlush
 } save_result_t;
 
-void saim_storage_file_create(saim_storage_file * file,
+void saim_storage_file__create(saim_storage_file * file,
 	const char* filename, unsigned int hash_value, file_offset_t max_file_size);
-void saim_storage_file_destroy(saim_storage_file * file);
+void saim_storage_file__destroy(saim_storage_file * file);
 
-big_file_size_t saim_storage_file_get_estimated_file_size(unsigned int num_tiles, unsigned int data_size);
+big_file_size_t saim_storage_file__get_estimated_file_size(unsigned int num_tiles, unsigned int data_size);
 
-bool saim_storage_file_flush(saim_storage_file * file);
+bool saim_storage_file__flush(saim_storage_file * file);
 
-void saim_storage_file_regenerate(saim_storage_file * file);
+void saim_storage_file__regenerate(saim_storage_file * file);
 
-void saim_storage_file_mark_operations_begin(saim_storage_file * file);
-void saim_storage_file_mark_operations_end(saim_storage_file * file);
+void saim_storage_file__mark_operations_begin(saim_storage_file * file);
+void saim_storage_file__mark_operations_end(saim_storage_file * file);
 
 // Write operations
-void saim_storage_file_write_header(saim_storage_file * file);
+void saim_storage_file__write_header(saim_storage_file * file);
 
 // Read operations
-bool saim_storage_file_read_header(saim_storage_file * file);
-void saim_storage_file_read_all_keys(saim_storage_file * file, key_offset_map_t * offsets, saim_map_nodes_list * list);
+bool saim_storage_file__read_header(saim_storage_file * file);
+void saim_storage_file__read_all_keys(saim_storage_file * file, saim_key_offset_map * offsets, saim_map_nodes_list * list);
 
-save_result_t saim_storage_file_save_logics(saim_storage_file * file,
+save_result_t saim_storage_file__save_logics(saim_storage_file * file,
 	const data_key_t * key, const saim_string * data,
-	key_offset_map_t * offsets, saim_map_nodes_list * list);
+	saim_key_offset_map * offsets, saim_map_nodes_list * list);
 
 typedef struct {
     unsigned int count;         //!< number of used blocks
@@ -56,14 +56,14 @@ typedef struct {
 } block_keys_t;
 
 // Some base operations
-void saim_storage_file_write_key_pair(saim_storage_file * file, const stored_key_pair_t* pair);
-void saim_storage_file_read_key_pair(saim_storage_file * file, stored_key_pair_t *pair);
-void saim_storage_file_write_block_header(saim_storage_file * file, const block_header_t* block_header);
-void saim_storage_file_read_block_header(saim_storage_file * file, block_header_t *block_header);
-void saim_storage_file_write_block_keys(saim_storage_file * file, const block_keys_t* keys);
-void saim_storage_file_read_block_keys(saim_storage_file * file, block_keys_t *keys);
-save_result_t saim_storage_file_replace_key(saim_storage_file * file,
+void saim_storage_file__write_key_pair(saim_storage_file * file, const stored_key_pair_t* pair);
+void saim_storage_file__read_key_pair(saim_storage_file * file, stored_key_pair_t *pair);
+void saim_storage_file__write_block_header(saim_storage_file * file, const block_header_t* block_header);
+void saim_storage_file__read_block_header(saim_storage_file * file, block_header_t *block_header);
+void saim_storage_file__write_block_keys(saim_storage_file * file, const block_keys_t* keys);
+void saim_storage_file__read_block_keys(saim_storage_file * file, block_keys_t *keys);
+save_result_t saim_storage_file__replace_key(saim_storage_file * file,
 	const data_key_t* key, const saim_string * data,
-    key_offset_map_t * offsets, saim_map_nodes_list * list);
+    saim_key_offset_map * offsets, saim_map_nodes_list * list);
 
 #endif

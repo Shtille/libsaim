@@ -1,14 +1,14 @@
 #include "saim_region_info.h"
 
-void region_info_create(region_info_t * info)
+void saim_region_info__create(saim_region_info * info)
 {
 	saim_string_create(&info->name);
 }
-void region_info_destroy(region_info_t * info)
+void saim_region_info__destroy(saim_region_info * info)
 {
 	saim_string_destroy(&info->name);
 }
-void region_info_copy(region_info_t * dest, const region_info_t * src)
+void saim_region_info__copy(saim_region_info * dest, const saim_region_info * src)
 {
 	dest->upper_latitude = src->upper_latitude;
 	dest->left_longitude = src->left_longitude;
@@ -16,19 +16,19 @@ void region_info_copy(region_info_t * dest, const region_info_t * src)
 	dest->right_longitude = src->right_longitude;
 	saim_string_copy(&dest->name, &src->name);
 }
-void stored_region_info_create(stored_region_info_t * info)
+void saim_stored_region_info__create(saim_stored_region_info * info)
 {
-	region_info_create(&info->info);
+	saim_region_info__create(&info->info);
 	saim_string_create(&info->filename);
 }
-void stored_region_info_destroy(stored_region_info_t * info)
+void saim_stored_region_info__destroy(saim_stored_region_info * info)
 {
-	region_info_destroy(&info->info);
+	saim_region_info__destroy(&info->info);
 	saim_string_destroy(&info->filename);
 }
-void stored_region_info_copy(stored_region_info_t * dst, const stored_region_info_t * src)
+void saim_stored_region_info__copy(saim_stored_region_info * dst, const saim_stored_region_info * src)
 {
-	region_info_copy(&dst->info, &src->info);
+	saim_region_info__copy(&dst->info, &src->info);
 	dst->status = src->status;
 	dst->time = src->time;
 	saim_string_copy(&dst->filename, &src->filename);

@@ -4,43 +4,43 @@
 
 static int compare_func(const void * p1, const void * p2)
 {
-	return storage_info_pair_compare((const storage_info_pair_t *)p1, (const storage_info_pair_t *)p2);
+	return saim_storage_info_pair__compare((const saim_storage_info_pair *)p1, (const saim_storage_info_pair *)p2);
 }
 static void destroy_func(void * p)
 {
-	storage_info_pair_t * pair = (storage_info_pair_t *)p;
-	storage_info_pair_destroy(pair);
+	saim_storage_info_pair * pair = (saim_storage_info_pair *)p;
+	saim_storage_info_pair__destroy(pair);
 	SAIM_FREE(pair);
 }
 
-void storage_info_map_create(storage_info_map_t * map)
+void saim_storage_info_map__create(saim_storage_info_map * map)
 {
 	map->set = saim_set_create(compare_func, destroy_func);
 }
-void storage_info_map_destroy(storage_info_map_t * map)
+void saim_storage_info_map__destroy(saim_storage_info_map * map)
 {
 	saim_set_destroy(map->set);
 }
-void storage_info_map_clear(storage_info_map_t * map)
+void saim_storage_info_map__clear(saim_storage_info_map * map)
 {
 	saim_set_clear(map->set);
 }
-saim_set_node * storage_info_map_insert(storage_info_map_t * map, storage_info_pair_t * pair)
+saim_set_node * saim_storage_info_map__insert(saim_storage_info_map * map, saim_storage_info_pair * pair)
 {
 	return saim_set_insert(map->set, pair);
 }
-void storage_info_map_erase(storage_info_map_t * map, saim_set_node * node)
+void saim_storage_info_map__erase(saim_storage_info_map * map, saim_set_node * node)
 {
 	saim_set_delete(map->set, node);
 }
-void storage_info_map_cut(storage_info_map_t * map, saim_set_node * node)
+void saim_storage_info_map__cut(saim_storage_info_map * map, saim_set_node * node)
 {
 	saim_set_cut(map->set, node);
 }
-saim_set_node * storage_info_map_search(storage_info_map_t * map, const saim_string * name)
+saim_set_node * saim_storage_info_map__search(saim_storage_info_map * map, const saim_string * name)
 {
 	saim_set_node * node;
-	storage_info_pair_t pair;
+	saim_storage_info_pair pair;
 
 	saim_string_create(&pair.name);
 	saim_string_set(&pair.name, name);

@@ -14,9 +14,9 @@ static size_t on_data_received(void* buffer, size_t size, size_t nmemb, void* us
 	return nmemb * size;
 }
 
-void saim_tile_service_task__create(saim_tile_service_task_t * task, 
-	struct storage_t * storage,
-	struct saim_curl_wrapper_t * curl_wrapper,
+void saim_tile_service_task__create(saim_tile_service_task * task, 
+	struct saim_storage * storage,
+	struct saim_curl_wrapper * curl_wrapper,
 	saim_tile_notification_function function,
 	const data_key_t* key)
 {
@@ -27,22 +27,22 @@ void saim_tile_service_task__create(saim_tile_service_task_t * task,
 	task->key = *key;
 	task->is_load = false;
 }
-void saim_tile_service_task__destroy(saim_tile_service_task_t * task)
+void saim_tile_service_task__destroy(saim_tile_service_task * task)
 {
 	saim_string_destroy(&task->data);
 }
-bool saim_tile_service_task__execute(saim_tile_service_task_t * task)
+bool saim_tile_service_task__execute(saim_tile_service_task * task)
 {
-	storage_info_t * storage_info;
+	saim_storage_info * storage_info;
 	key_pair_t * pair;
 	char url_buffer[260];
 
-	pair = storage_get_key_pair(task->storage, &task->key, &storage_info);
+	pair = saim_storage__get_key_pair(task->storage, &task->key, &storage_info);
 	task->is_load = (pair != 0);
 
 	if (task->is_load) // load
 	{
-		return storage_load(task->storage, pair, &task->data, storage_info);
+		return saim_storage__load(task->storage, pair, &task->data, storage_info);
 	}
 	else // download
 	{
@@ -52,7 +52,7 @@ bool saim_tile_service_task__execute(saim_tile_service_task_t * task)
 			url_buffer, (void*)&task->data, on_data_received);
 	}
 }
-void saim_tile_service_task__notify(saim_tile_service_task_t * task, bool success)
+void saim_tile_service_task__notify(saim_tile_service_task * task, bool success)
 {
 	if (success)
 	{
@@ -65,7 +65,7 @@ void saim_tile_service_task__notify(saim_tile_service_task_t * task, bool succes
 		else // download
 		{
 			// Save data to the main storage
-			if (storage_save_main(task->storage, &task->key, &task->data))
+			if (saim_storage__save_main(task->storage, &task->key, &task->data))
 			{
 				// Then notify main observer (to let copy or move data)
 				if (task->function)
