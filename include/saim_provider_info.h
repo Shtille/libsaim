@@ -27,22 +27,30 @@
 #ifndef __SAIM_PROVIDER_INFO_H__
 #define __SAIM_PROVIDER_INFO_H__
 
+/*! @brief Flags that are used in provider info structure.
+*          - SAIM_BOUNDING_BOX is used for bounding box range.
+*          - SAIM_LEVEL_OF_DETAIL is used for setting the minimum and the maximum lod
+             that tile service provides.
+           - SAIM_BITMAP_SIZE is used for setting bitmap size of a single tile.
+*/
 enum {
 	SAIM_BOUNDING_BOX		= 1,
 	SAIM_LEVEL_OF_DETAIL	= 2,
 	SAIM_BITMAP_SIZE		= 4
 };
 
+/*! @brief A provider info structure.
+*/
 typedef struct {
-	double min_latitude;
-	double max_latitude;
-	double min_longitude;
-	double max_longitude;
-	int min_lod;
-	int max_lod;
-	int bitmap_width;
-	int bitmap_height;
-	char string[260];
+	double min_latitude;	//!< minimum latitude in tile service source
+	double max_latitude;	//!< maximum latitude in tile service source
+	double min_longitude;	//!< minimum longitude in tile service source
+	double max_longitude;	//!< maximum longitude in tile service source
+	int min_lod;			//!< minimum LOD of the tile service
+	int max_lod;			//!< maximum LOD of the tile service
+	int bitmap_width;		//!< a single tile width
+	int bitmap_height;		//!< a single tile height
+	char string[260];		//!< URL format to download tiles
 } saim_provider_info;
 
 #endif

@@ -29,18 +29,45 @@
 
 #include "saim_provider_info.h"
 
-/*! @brief Initialization function
-	@return returns 0 on success and not 0 in case of error
+/*! @brief Library initialization function.
+ *  @param[in] path          A path there tiles storage is located.
+ *  @param[in] provider_info Pointer to provider info that discribes tiles services parameters.
+ *  @param[in] flags         Some flags that discribe which parameters from provider info is to use.
+ *  @return                  returns 0 on success and not 0 in case of error
 */
 int saim_init(const char* path, saim_provider_info * provider_info, int flags);
+
+/*! @brief Library cleanup function.
+*/
 void saim_cleanup();
 
+/*! @brief Setups target bitmap parameters.
+ *  @param[in] buffer          Pointer to the target buffer.
+ *  @param[in] width           Width of the target buffer.
+ *  @param[in] height          Height of the buffer.
+ *  @param[in] bytes_per_pixel Number of bytes per pixel of the target buffer.
+*/
 void saim_set_target(unsigned char * buffer, int width, int height, int bytes_per_pixel);
-/*! Renders saved bitmap onto target surface
-@param[in] upper_latitude Latitude of the upper left point of rendered rectangle
-TODO: discribe later
+
+/*! @brief Renders saved bitmaps onto aligned target surface.
+ *  @param[in] upper_latitude  Latitude of the upper left point of rendered rectangle, degrees.
+ *  @param[in] left_longitude  Longitude of the upper left point of rendered rectangle, degrees.
+ *  @param[in] lower_latitude  Latitude of the lower right point of rendered rectangle, degrees.
+ *  @param[in] right_longitude Longitude of the lower right point of rendered rectangle, degrees.
+ *  @return                    Returns number of tiles that are left to load (0 if buffer has been filled)
+ *  					       and -1 in case of error.
 */
 int saim_render_aligned(double upper_latitude, double left_longitude, double lower_latitude, double right_longitude);
+
+/*! @brief Renders saved bitmaps onto target surface.
+ *  @param[in] upper_latitude  Latitude of the upper left point of rendered rectangle, degrees.
+ *  @param[in] left_longitude  Longitude of the upper left point of rendered rectangle, degrees.
+ *  @param[in] lower_latitude  Latitude of the lower right point of rendered rectangle, degrees.
+ *  @param[in] right_longitude Longitude of the lower right point of rendered rectangle, degrees.
+ *  @param[in] angle           Rotation angle of rectangle, counter clock wise, degrees.
+ *  @return                    Returns number of tiles that are left to load (0 if buffer has been filled) and
+ *			   				   -1 in case of error.
+*/
 int saim_render_common(double upper_latitude, double left_longitude, double lower_latitude, double right_longitude, float angle);
 
 #endif
