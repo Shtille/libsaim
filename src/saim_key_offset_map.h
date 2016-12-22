@@ -15,6 +15,6 @@ void saim_key_offset_map__clear(saim_key_offset_map * map);
 saim_set_node * saim_key_offset_map__insert(saim_key_offset_map * map, key_pair_t * pair);
 void saim_key_offset_map__erase(saim_key_offset_map * map, saim_set_node * node);
 
-saim_set_node * saim_key_offset_map__search(saim_key_offset_map * map, const data_key_t * key);
+saim_set_node * saim_key_offset_map__search(saim_key_offset_map * map, const saim_data_key * key);
 
 #endif

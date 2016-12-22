@@ -37,7 +37,7 @@ void saim_bitmap_map__erase(saim_bitmap_map * map, saim_set_node * node)
 {
 	saim_set_delete(map->set, node);
 }
-saim_set_node * saim_bitmap_map__search(saim_bitmap_map * map, const data_key_t * key)
+saim_set_node * saim_bitmap_map__search(saim_bitmap_map * map, const saim_data_key * key)
 {
 	saim_bitmap_info_pair pair;
 	pair.key = *key;

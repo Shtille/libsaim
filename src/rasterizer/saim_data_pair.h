@@ -5,7 +5,7 @@
 #include "../util/saim_string.h"
 
 typedef struct {
-	data_key_t key;
+	saim_data_key key;
 	saim_string data;
 } saim_data_pair;
 

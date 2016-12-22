@@ -84,7 +84,7 @@ bool saim_manager__is_viewport_clipping_enabled()
 {
 	return s_viewport_clipping_enabled;
 }
-bool saim_manager__is_in_viewport(const data_key_t * key)
+bool saim_manager__is_in_viewport(const saim_data_key * key)
 {
 	if (!s_viewport_clipping_enabled)
 		return true;

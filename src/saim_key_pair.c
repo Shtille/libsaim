@@ -18,5 +18,5 @@ void make_stored_key_pair(stored_key_pair_t * dst, const key_pair_t * src)
 int key_pair_compare(const key_pair_t * a, const key_pair_t * b)
 {
 	// Use key compare function
-	return data_key_compare(&a->key, &b->key);
+	return saim_data_key__compare(&a->key, &b->key);
 }

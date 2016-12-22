@@ -19,7 +19,7 @@ void make_key_region(key_region_t * region, int min_x, int max_x, int min_y, int
 void low_detailed_region(key_region_t * region, const key_region_t * other);
 void high_detailed_region(key_region_t * region, const key_region_t * other);
 
-bool is_key_inside_region(const key_region_t * region, const data_key_t * key);
+bool is_key_inside_region(const key_region_t * region, const saim_data_key * key);
 
 bool key_region_operator_equal(const key_region_t * lhs, const key_region_t * rhs);
 bool key_region_operator_less(const key_region_t * lhs, const key_region_t * rhs);

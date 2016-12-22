@@ -18,6 +18,6 @@ void saim_manager__enable_viewport_clipping();
 void saim_manager__disable_viewport_clipping();
 bool saim_manager__is_viewport_clipping_enabled();
 
-bool saim_manager__is_in_viewport(const data_key_t * key);
+bool saim_manager__is_in_viewport(const saim_data_key * key);
 
 #endif

@@ -17,13 +17,13 @@ void saim_cache__destroy(saim_cache * cache);
 bool saim_cache__initialize(saim_cache * cache);
 
 //! Whether key exists in our database
-bool saim_cache__is_exist(saim_cache * cache, const data_key_t * key);
+bool saim_cache__is_exist(saim_cache * cache, const saim_data_key * key);
 
 //! Query to load a single tile using tile service
-void saim_cache__tile_service_load_query(saim_cache * cache, const data_key_t * key, saim_tile_notification_function function);
+void saim_cache__tile_service_load_query(saim_cache * cache, const saim_data_key * key, saim_tile_notification_function function);
 
 //! Query to load a single tile using region service
-void saim_cache__region_service_load_query(saim_cache * cache, const data_key_t * key, const saim_string* name, saim_region_notification_function function);
+void saim_cache__region_service_load_query(saim_cache * cache, const saim_data_key * key, const saim_string* name, saim_region_notification_function function);
 
 //! Clear all regions download tasks
 void saim_cache__clear_region_service_tasks(saim_cache * cache);

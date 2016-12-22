@@ -45,20 +45,20 @@ int saim_rasterizer__render_common(saim_rasterizer * rasterizer,
 
 // Some function for inner use
 
-void saim_rasterizer__push_request(saim_rasterizer * rasterizer, const data_key_t * key);
+void saim_rasterizer__push_request(saim_rasterizer * rasterizer, const saim_data_key * key);
 
 //! Clear all the data
 void saim_rasterizer__clear(saim_rasterizer * rasterizer);
 
-const saim_bitmap * saim_rasterizer__get_bitmap(saim_rasterizer * rasterizer, const data_key_t * key, bool use_counter);
+const saim_bitmap * saim_rasterizer__get_bitmap(saim_rasterizer * rasterizer, const saim_data_key * key, bool use_counter);
 
 //! Whether key been requested
-bool saim_rasterizer__is_requested(saim_rasterizer * rasterizer, const data_key_t * key);
+bool saim_rasterizer__is_requested(saim_rasterizer * rasterizer, const saim_data_key * key);
 
 //! Whether key been loaded
-bool saim_rasterizer__is_loaded(saim_rasterizer * rasterizer, const data_key_t * key);
+bool saim_rasterizer__is_loaded(saim_rasterizer * rasterizer, const saim_data_key * key);
 
-void saim_rasterizer__add_request(saim_rasterizer * rasterizer, const data_key_t * key);
+void saim_rasterizer__add_request(saim_rasterizer * rasterizer, const saim_data_key * key);
 
 //! Transform pending data to bitmap
 void saim_rasterizer__data_transform(saim_rasterizer * rasterizer);
@@ -80,7 +80,7 @@ void saim_rasterizer__set_bitmap_low_for_buffer(saim_rasterizer * rasterizer, in
 
 void saim_rasterizer__clear_bitmap_buffer(saim_rasterizer * rasterizer);
 const saim_buffered_bitmap_info * saim_rasterizer__get_bitmap_from_buffer(saim_rasterizer * rasterizer, int key_x, int key_y);
-void saim_rasterizer__erase_key_from_buffer(saim_rasterizer * rasterizer, const data_key_t * key);
+void saim_rasterizer__erase_key_from_buffer(saim_rasterizer * rasterizer, const saim_data_key * key);
 void saim_rasterizer__sort_cache(saim_rasterizer * rasterizer);
 
 #endif

@@ -11,5 +11,5 @@ void saim_bitmap_info_pair__destroy(saim_bitmap_info_pair * info_pair)
 int saim_bitmap_info_pair__compare(const saim_bitmap_info_pair* p1, const saim_bitmap_info_pair* p2)
 {
 	// Use key compare function
-	return data_key_compare(&p1->key, &p2->key);
+	return saim_data_key__compare(&p1->key, &p2->key);
 }

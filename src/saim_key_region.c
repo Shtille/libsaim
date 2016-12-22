@@ -36,14 +36,14 @@ void high_detailed_region(key_region_t * region, const key_region_t * other)
 	region->level = other->level + 1;
 	region->is_break = other->is_break;
 }
-bool is_key_inside_region(const key_region_t * region, const data_key_t * key)
+bool is_key_inside_region(const key_region_t * region, const saim_data_key * key)
 {
 	int key_x, key_y, key_z;
 	bool in_x_range;
 
-	key_x = data_key_get_x(key);
-	key_y = data_key_get_y(key);
-	key_z = data_key_get_z(key);
+	key_x = saim_data_key__get_x(key);
+	key_y = saim_data_key__get_y(key);
+	key_z = saim_data_key__get_z(key);
 	in_x_range = (region->is_break) ? (key_x >= region->min_x || key_x <= region->max_x)
 	                         		: (key_x >= region->min_x && key_x <= region->max_x);
 	return (key_z == region->level)

@@ -95,7 +95,7 @@ bool saim_storage__initialize(saim_storage * storage)
 	saim_storage__initialize_key_set(storage);
 	return true;
 }
-key_pair_t * saim_storage__get_key_pair(saim_storage * storage, const data_key_t * key, saim_storage_info ** storage_info)
+key_pair_t * saim_storage__get_key_pair(saim_storage * storage, const saim_data_key * key, saim_storage_info ** storage_info)
 {
 	saim_set_node *node, *nil, *node2, *nil2;
 	saim_storage_info_pair * info_pair;
@@ -131,7 +131,7 @@ key_pair_t * saim_storage__get_key_pair(saim_storage * storage, const data_key_t
 	mtx_unlock(&storage->critical_section);
 	return return_pair;
 }
-bool saim_storage__is_exist(saim_storage * storage, const data_key_t * key)
+bool saim_storage__is_exist(saim_storage * storage, const saim_data_key * key)
 {
 	saim_set_node * node;
 	bool is_exist;
@@ -172,7 +172,7 @@ bool saim_storage__load(saim_storage * storage, key_pair_t * pair, saim_string *
 	mtx_unlock(&storage->critical_section);
 	return result;
 }
-bool saim_storage__save_main(saim_storage * storage, const data_key_t * key, const saim_string * data)
+bool saim_storage__save_main(saim_storage * storage, const saim_data_key * key, const saim_string * data)
 {
 	bool result;
 	mtx_lock(&storage->critical_section);
@@ -180,7 +180,7 @@ bool saim_storage__save_main(saim_storage * storage, const data_key_t * key, con
 	mtx_unlock(&storage->critical_section);
 	return result;
 }
-bool saim_storage__save_separate(saim_storage * storage, const data_key_t * key, const saim_string * data, const saim_string * name)
+bool saim_storage__save_separate(saim_storage * storage, const saim_data_key * key, const saim_string * data, const saim_string * name)
 {
 	bool result;
 	saim_set_node * node;
@@ -540,7 +540,7 @@ void saim_storage__initialize_key_set(saim_storage * storage)
 	saim_set_node *node, *node2;
 	saim_set_node *nil, *nil2;
 	key_pair_t * pair;
-	data_key_t * key_copy;
+	saim_data_key * key_copy;
 	saim_storage_info_pair * info_pair;
 
 	saim_key_set__clear(&storage->key_set);
@@ -550,8 +550,8 @@ void saim_storage__initialize_key_set(saim_storage * storage)
     while (node != nil)
     {
     	pair = (key_pair_t *)node->data;
-		key_copy = (data_key_t *)SAIM_MALLOC(sizeof(data_key_t));
-		data_key_set_by_other(key_copy, &pair->key);
+		key_copy = (saim_data_key *)SAIM_MALLOC(sizeof(saim_data_key));
+		saim_data_key__set_by_other(key_copy, &pair->key);
     	saim_key_set__insert(&storage->key_set, key_copy);
     	node = saim_set_get_next(storage->main_info.offsets.set, node);
     }
@@ -567,8 +567,8 @@ void saim_storage__initialize_key_set(saim_storage * storage)
     	while (node2 != nil2)
     	{
     		pair = (key_pair_t *)node2->data;
-			key_copy = (data_key_t *)SAIM_MALLOC(sizeof(data_key_t));
-			data_key_set_by_other(key_copy, &pair->key);
+			key_copy = (saim_data_key *)SAIM_MALLOC(sizeof(saim_data_key));
+			saim_data_key__set_by_other(key_copy, &pair->key);
     		saim_key_set__insert(&storage->key_set, key_copy);
     		node2 = saim_set_get_next(info_pair->info.offsets.set, node2);
     	}
@@ -607,17 +607,17 @@ void saim_storage__generate_region_file_name(saim_storage * storage, char* buffe
 	sprintf(filename, "%u.omr", id);
 	append_path(buffer, filename);
 }
-bool saim_storage__save(saim_storage * storage, const data_key_t * key, const saim_string * data, saim_storage_info * info)
+bool saim_storage__save(saim_storage * storage, const saim_data_key * key, const saim_string * data, saim_storage_info * info)
 {
 	saim_file * base_file = &info->file.file;
 	save_result_t result;
-	data_key_t * key_copy;
+	saim_data_key * key_copy;
 	bool need_to_flush;
 
 	if (data->length == 0)
 	{
 		fprintf(stderr, "saim: curl returned empty data for key(%i,%i,%i)\n",
-                      data_key_get_z(key), data_key_get_x(key), data_key_get_y(key));
+                      saim_data_key__get_z(key), saim_data_key__get_x(key), saim_data_key__get_y(key));
 		return true;
 	}
 	if (saim_file__open_for_read(base_file))
@@ -646,8 +646,8 @@ bool saim_storage__save(saim_storage * storage, const data_key_t * key, const sa
 			saim_storage__initialize_key_set(storage);
 		else
 		{
-			key_copy = (data_key_t *)SAIM_MALLOC(sizeof(data_key_t));
-			data_key_set_by_other(key_copy, key);
+			key_copy = (saim_data_key *)SAIM_MALLOC(sizeof(saim_data_key));
+			saim_data_key__set_by_other(key_copy, key);
 			saim_key_set__insert(&storage->key_set, key_copy);
 		}
 		mtx_unlock(&storage->critical_section_key_set);

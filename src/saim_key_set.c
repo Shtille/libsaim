@@ -4,12 +4,12 @@
 
 static int compare_func(const void * key1, const void * key2)
 {
-	return data_key_compare((const data_key_t *)key1, (const data_key_t *)key2);
+	return saim_data_key__compare((const saim_data_key *)key1, (const saim_data_key *)key2);
 }
 static void destroy_func(void * victim)
 {
-	data_key_t * key = (data_key_t *)victim;
-	data_key_destroy(key);
+	saim_data_key * key = (saim_data_key *)victim;
+	saim_data_key__destroy(key);
 	SAIM_FREE(key);
 }
 
@@ -25,7 +25,7 @@ void saim_key_set__clear(saim_key_set * set)
 {
 	saim_set_clear(set->set);
 }
-void saim_key_set__insert(saim_key_set * set, const data_key_t * key)
+void saim_key_set__insert(saim_key_set * set, const saim_data_key * key)
 {
 	saim_set_node * node;
 	node = saim_set_search(set->set, key);
@@ -36,7 +36,7 @@ void saim_key_set__erase(saim_key_set * set, saim_set_node * node)
 {
 	saim_set_delete(set->set, node);
 }
-saim_set_node * saim_key_set__search(saim_key_set * set, const data_key_t * key)
+saim_set_node * saim_key_set__search(saim_key_set * set, const saim_data_key * key)
 {
 	return saim_set_search(set->set, key);
 }

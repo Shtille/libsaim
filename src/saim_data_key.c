@@ -18,35 +18,35 @@ static key_hash_t hash_function(int x, int y, int z)
 	return (uz << kZShift) | (uy << kYShift) | (ux);
 }
 
-void data_key_create(data_key_t * key, int x, int y, int z)
+void saim_data_key__create(saim_data_key * key, int x, int y, int z)
 {
 	key->hash = hash_function(x, y, z);
 }
-void data_key_destroy(data_key_t * key)
+void saim_data_key__destroy(saim_data_key * key)
 {
 	// Nothing to do
 }
-void data_key_set(data_key_t * key, int x, int y, int z)
+void saim_data_key__set(saim_data_key * key, int x, int y, int z)
 {
 	key->hash = hash_function(x, y, z);
 }
-void data_key_set_by_other(data_key_t * key, const data_key_t * other_key)
+void saim_data_key__set_by_other(saim_data_key * key, const saim_data_key * other_key)
 {
 	key->hash = other_key->hash;
 }
-int data_key_get_x(const data_key_t * key)
+int saim_data_key__get_x(const saim_data_key * key)
 {
 	return (int)((key->hash & kXMask)           )-1;
 }
-int data_key_get_y(const data_key_t * key)
+int saim_data_key__get_y(const saim_data_key * key)
 {
 	return (int)((key->hash & kYMask) >> kYShift)-1;
 }
-int data_key_get_z(const data_key_t * key)
+int saim_data_key__get_z(const saim_data_key * key)
 {
 	return (int)((key->hash & kZMask) >> kZShift)-1;
 }
-int data_key_compare(const data_key_t * key1, const data_key_t * key2)
+int saim_data_key__compare(const saim_data_key * key1, const saim_data_key * key2)
 {
 	if (key1->hash > key2->hash) return 1;
 	if (key1->hash < key2->hash) return -1;

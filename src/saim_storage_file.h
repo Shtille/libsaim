@@ -43,7 +43,7 @@ bool saim_storage_file__read_header(saim_storage_file * file);
 void saim_storage_file__read_all_keys(saim_storage_file * file, saim_key_offset_map * offsets, saim_map_nodes_list * list);
 
 save_result_t saim_storage_file__save_logics(saim_storage_file * file,
-	const data_key_t * key, const saim_string * data,
+	const saim_data_key * key, const saim_string * data,
 	saim_key_offset_map * offsets, saim_map_nodes_list * list);
 
 typedef struct {
@@ -63,7 +63,7 @@ void saim_storage_file__read_block_header(saim_storage_file * file, block_header
 void saim_storage_file__write_block_keys(saim_storage_file * file, const block_keys_t* keys);
 void saim_storage_file__read_block_keys(saim_storage_file * file, block_keys_t *keys);
 save_result_t saim_storage_file__replace_key(saim_storage_file * file,
-	const data_key_t* key, const saim_string * data,
+	const saim_data_key* key, const saim_string * data,
     saim_key_offset_map * offsets, saim_map_nodes_list * list);
 
 #endif

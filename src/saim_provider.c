@@ -125,13 +125,13 @@ bool saim_provider__init(saim_provider * provider, saim_provider_info * provider
 	else
 		return false;
 }
-void saim_provider__fill_buffer_for_key(saim_provider * provider, const data_key_t * key, char* buffer)
+void saim_provider__fill_buffer_for_key(saim_provider * provider, const saim_data_key * key, char* buffer)
 {
 	// Make sure that this function is called only from one thread
 	mtx_lock(&provider->mutex);
-	provider->passed_key_x = data_key_get_x(key);
-	provider->passed_key_y = data_key_get_y(key);
-	provider->passed_key_z = data_key_get_z(key);
+	provider->passed_key_x = saim_data_key__get_x(key);
+	provider->passed_key_y = saim_data_key__get_y(key);
+	provider->passed_key_z = saim_data_key__get_z(key);
 	sprintf(buffer, provider->url_format.data,
 		*provider->first_argument, *provider->second_argument, *provider->third_argument);
 	mtx_unlock(&provider->mutex);

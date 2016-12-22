@@ -18,7 +18,7 @@ void saim_region_service_task__create(saim_region_service_task * task,
 	struct saim_storage * storage,
 	struct saim_curl_wrapper * curl_wrapper,
 	saim_region_notification_function function,
-	const data_key_t * key,
+	const saim_data_key * key,
 	const saim_string * region_name)
 {
 	saim_string_create(&task->data);

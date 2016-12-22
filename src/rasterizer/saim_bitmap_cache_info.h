@@ -4,7 +4,7 @@
 #include "../saim_data_key.h"
 
 typedef struct {
-	data_key_t key;
+	saim_data_key key;
 	int usage; //!< keep the last time of access to this key
 } saim_bitmap_cache_info;
 

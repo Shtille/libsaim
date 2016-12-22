@@ -104,7 +104,7 @@ int saim_rasterizer__render_common(saim_rasterizer * rasterizer,
 
 // -------------------- Internal use only functions -------------------------
 
-static void tile_notification_function(const data_key_t * key, saim_string * data, bool success)
+static void tile_notification_function(const saim_data_key * key, saim_string * data, bool success)
 {
 	saim_data_pair * pair;
 
@@ -121,7 +121,7 @@ static void tile_notification_function(const data_key_t * key, saim_string * dat
 	mtx_unlock(&s_rasterizer->mutex);
 }
 
-void saim_rasterizer__push_request(saim_rasterizer * rasterizer, const data_key_t * key)
+void saim_rasterizer__push_request(saim_rasterizer * rasterizer, const saim_data_key * key)
 {
 	// Whether key requested to load or loaded
     if (!saim_rasterizer__is_requested(rasterizer, key))
@@ -143,7 +143,7 @@ void saim_rasterizer__clear(saim_rasterizer * rasterizer)
 	saim_bitmap_map__clear(&rasterizer->bitmap_map);
 	saim_bitmap_cache_info_list__clear(&rasterizer->bitmap_cache);
 }
-const saim_bitmap * saim_rasterizer__get_bitmap(saim_rasterizer * rasterizer, const data_key_t * key, bool use_counter)
+const saim_bitmap * saim_rasterizer__get_bitmap(saim_rasterizer * rasterizer, const saim_data_key * key, bool use_counter)
 {
 	saim_set_node * node;
 	saim_bitmap_info_pair * pair;
@@ -158,23 +158,23 @@ const saim_bitmap * saim_rasterizer__get_bitmap(saim_rasterizer * rasterizer, co
 	else
 		return NULL;
 }
-bool saim_rasterizer__is_requested(saim_rasterizer * rasterizer, const data_key_t * key)
+bool saim_rasterizer__is_requested(saim_rasterizer * rasterizer, const saim_data_key * key)
 {
 	saim_set_node * node;
 	node = saim_key_set__search(&rasterizer->requested_keys, key);
 	return node != rasterizer->requested_keys.set->nil;
 }
-bool saim_rasterizer__is_loaded(saim_rasterizer * rasterizer, const data_key_t * key)
+bool saim_rasterizer__is_loaded(saim_rasterizer * rasterizer, const saim_data_key * key)
 {
 	saim_set_node * node;
 	node = saim_bitmap_map__search(&rasterizer->bitmap_map, key);
 	return node != rasterizer->bitmap_map.set->nil;
 }
-void saim_rasterizer__add_request(saim_rasterizer * rasterizer, const data_key_t * key)
+void saim_rasterizer__add_request(saim_rasterizer * rasterizer, const saim_data_key * key)
 {
-	data_key_t * key_copy;
-	key_copy = (data_key_t *)SAIM_MALLOC(sizeof(data_key_t));
-	data_key_set_by_other(key_copy, key); // copy
+	saim_data_key * key_copy;
+	key_copy = (saim_data_key *)SAIM_MALLOC(sizeof(saim_data_key));
+	saim_data_key__set_by_other(key_copy, key); // copy
 	saim_key_set__insert(&rasterizer->requested_keys, key_copy);
 }
 static void empty_image(saim_rasterizer * rasterizer, saim_bitmap * bitmap)
@@ -280,7 +280,7 @@ static void decode_image(saim_rasterizer * rasterizer, const saim_string * data,
 void saim_rasterizer__data_transform(saim_rasterizer * rasterizer)
 {
 	saim_data_pair * pair;
-	const data_key_t * key;
+	const saim_data_key * key;
 	saim_set_node * node;
 	saim_bitmap_cache_info * info;
 	saim_bitmap_info_pair * info_pair;
@@ -351,7 +351,7 @@ void saim_rasterizer__pre_render(saim_rasterizer * rasterizer,
 	int* num_tiles_to_load, int* optimal_lod)
 {
 	int left, right, top, bottom;
-	data_key_t key, key_low;
+	saim_data_key key, key_low;
 	const saim_bitmap * bitmap, * bitmap_low;
 
 	double screen_pixel_size_x = (right_longitude - left_longitude)/(double)rasterizer->target_width;
@@ -381,7 +381,7 @@ void saim_rasterizer__pre_render(saim_rasterizer * rasterizer,
     {
         int x = (left + i) % tiles_per_side;
         // Add a key to the list
-        data_key_create(&key, x, y, *optimal_lod);
+        saim_data_key__create(&key, x, y, *optimal_lod);
         bitmap = saim_rasterizer__get_bitmap(rasterizer, &key, true);
 
         if (bitmap == NULL) // not loaded yet
@@ -398,7 +398,7 @@ void saim_rasterizer__pre_render(saim_rasterizer * rasterizer,
                 int lod = *optimal_lod - i;
                 int key_x_low = x >> i;
                 int key_y_low = y >> i;
-                data_key_create(&key_low, key_x_low, key_y_low, lod);
+                saim_data_key__create(&key_low, key_x_low, key_y_low, lod);
                 bitmap_low = saim_rasterizer__get_bitmap(rasterizer, &key_low, false);
                 if (bitmap_low)
                 {
@@ -821,15 +821,15 @@ const saim_buffered_bitmap_info * saim_rasterizer__get_bitmap_from_buffer(saim_r
 	else
 		return NULL;
 }
-void saim_rasterizer__erase_key_from_buffer(saim_rasterizer * rasterizer, const data_key_t * key)
+void saim_rasterizer__erase_key_from_buffer(saim_rasterizer * rasterizer, const saim_data_key * key)
 {
 	int key_x, key_y, key_z;
 	saim_buffered_bitmap_info * data;
 	saim_bitmap_buffer * buffer = &rasterizer->bitmap_buffer;
 
-	key_x = data_key_get_x(key);
-	key_y = data_key_get_y(key);
-	key_z = data_key_get_z(key);
+	key_x = saim_data_key__get_x(key);
+	key_y = saim_data_key__get_y(key);
+	key_z = saim_data_key__get_z(key);
 	if (buffer->has_any_low_detailed_bitmap && key_z != buffer->level_of_detail)
 	{
 		int tiles_per_side = 1 << buffer->level_of_detail;

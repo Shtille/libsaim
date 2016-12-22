@@ -24,18 +24,18 @@ bool saim_cache__initialize(saim_cache * cache)
 {
 	return saim_storage__initialize(&cache->storage);
 }
-bool saim_cache__is_exist(saim_cache * cache, const data_key_t * key)
+bool saim_cache__is_exist(saim_cache * cache, const saim_data_key * key)
 {
 	return saim_storage__is_exist(&cache->storage, key);
 }
-void saim_cache__tile_service_load_query(saim_cache * cache, const data_key_t * key, saim_tile_notification_function function)
+void saim_cache__tile_service_load_query(saim_cache * cache, const saim_data_key * key, saim_tile_notification_function function)
 {
 	saim_tile_service_task * task;
 	task = (saim_tile_service_task *)SAIM_MALLOC(sizeof(saim_tile_service_task));
 	saim_tile_service_task__create(task, &cache->storage, &cache->tile_service.curl_wrapper, function, key);
 	saim_tile_service__add_task(&cache->tile_service, task);
 }
-void saim_cache__region_service_load_query(saim_cache * cache, const data_key_t * key, const saim_string* name, saim_region_notification_function function)
+void saim_cache__region_service_load_query(saim_cache * cache, const saim_data_key * key, const saim_string* name, saim_region_notification_function function)
 {
 	saim_region_service_task * task;
 	task = (saim_region_service_task *)SAIM_MALLOC(sizeof(saim_region_service_task));

@@ -26,7 +26,7 @@ static int thread_func(void * arg)
 			while (node != NULL)
 			{
 				cur_task = (saim_tile_service_task *)node->data;
-				if (data_key_get_z(&cur_task->key) < data_key_get_z(&task->key)) // less detailed
+				if (saim_data_key__get_z(&cur_task->key) < saim_data_key__get_z(&task->key)) // less detailed
 				{
 					task = cur_task;
 					best_node = node;

@@ -7,12 +7,12 @@
 #pragma pack(push, 1)
 
 typedef struct {
-    data_key_t key;
+    saim_data_key key;
     data_info_t info;
 } key_pair_t;
 
 typedef struct {
-    data_key_t key;
+    saim_data_key key;
     stored_data_info_t info;
 } stored_key_pair_t;
 

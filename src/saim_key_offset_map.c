@@ -32,7 +32,7 @@ void saim_key_offset_map__erase(saim_key_offset_map * map, saim_set_node * node)
 {
 	saim_set_delete(map->set, node);
 }
-saim_set_node * saim_key_offset_map__search(saim_key_offset_map * map, const data_key_t * key)
+saim_set_node * saim_key_offset_map__search(saim_key_offset_map * map, const saim_data_key * key)
 {
 	key_pair_t pair;
 	pair.key = *key;

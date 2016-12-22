@@ -38,19 +38,19 @@ void saim_storage__destroy(saim_storage * storage);
 bool saim_storage__initialize(saim_storage * storage);
 
 //! Called by tile service, finds storage for a key
-key_pair_t * saim_storage__get_key_pair(saim_storage * storage, const data_key_t * key, saim_storage_info ** storage_info);
+key_pair_t * saim_storage__get_key_pair(saim_storage * storage, const saim_data_key * key, saim_storage_info ** storage_info);
 
 //! Called by rendering thread, checks whether key is in any storage
-bool saim_storage__is_exist(saim_storage * storage, const data_key_t * key);
+bool saim_storage__is_exist(saim_storage * storage, const saim_data_key * key);
 
 //! Called by tile service, loads data from a chosen source
 bool saim_storage__load(saim_storage * storage, key_pair_t * pair, saim_string * data, saim_storage_info * info);
 
 //! Called by tile service, saves data to main storage file
-bool saim_storage__save_main(saim_storage * storage, const data_key_t * key, const saim_string * data);
+bool saim_storage__save_main(saim_storage * storage, const saim_data_key * key, const saim_string * data);
 
 //! Called by region service, saves data to some named region storage file
-bool saim_storage__save_separate(saim_storage * storage, const data_key_t * key, const saim_string * data, const saim_string * name);
+bool saim_storage__save_separate(saim_storage * storage, const saim_data_key * key, const saim_string * data, const saim_string * name);
 
 bool saim_storage__region_add(saim_storage * storage, const saim_region_info * region_info);
 bool saim_storage__region_rename(saim_storage * storage, const saim_string * old_name, const saim_string * new_name);
@@ -81,6 +81,6 @@ void saim_storage__initialize_key_set(saim_storage * storage);
 void saim_storage__deinitialize_regions(saim_storage * storage);
 void saim_storage__deinitialize(saim_storage * storage);
 void saim_storage__generate_region_file_name(saim_storage * storage, char* buffer);
-bool saim_storage__save(saim_storage * storage, const data_key_t * key, const saim_string * data, saim_storage_info * info);
+bool saim_storage__save(saim_storage * storage, const saim_data_key * key, const saim_string * data, saim_storage_info * info);
 
 #endif

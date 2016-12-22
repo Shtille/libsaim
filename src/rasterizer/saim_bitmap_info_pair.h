@@ -5,7 +5,7 @@
 #include "saim_bitmap_info.h"
 
 typedef struct {
-	data_key_t key;
+	saim_data_key key;
 	saim_bitmap_info info;
 } saim_bitmap_info_pair;
 

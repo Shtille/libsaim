@@ -251,7 +251,7 @@ void saim_storage_file__read_block_keys(saim_storage_file * file, block_keys_t *
 	}
 }
 save_result_t saim_storage_file__replace_key(saim_storage_file * file,
-	const data_key_t* key, const saim_string * data,
+	const saim_data_key* key, const saim_string * data,
     saim_key_offset_map * offsets, saim_map_nodes_list * list)
 {
 	file_size_t data_size;
@@ -313,7 +313,7 @@ save_result_t saim_storage_file__replace_key(saim_storage_file * file,
 	return kSave_Success;
 }
 save_result_t saim_storage_file__save_logics(saim_storage_file * file,
-	const data_key_t * key, const saim_string * data,
+	const saim_data_key * key, const saim_string * data,
 	saim_key_offset_map * offsets, saim_map_nodes_list * list)
 {
 	file_offset_t header_offset;

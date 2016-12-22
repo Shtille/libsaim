@@ -34,6 +34,6 @@ void saim_provider__destroy(saim_provider * provider);
 
 bool saim_provider__init(saim_provider * provider, saim_provider_info * provider_info, int flags);
 
-void saim_provider__fill_buffer_for_key(saim_provider * provider, const data_key_t * key, char* buffer);
+void saim_provider__fill_buffer_for_key(saim_provider * provider, const saim_data_key * key, char* buffer);
 
 #endif
