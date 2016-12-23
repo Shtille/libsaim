@@ -2,22 +2,25 @@
 CURL_PATH :=
 CURL_LIB :=
 
-JPEG_PATH := ./thirdparty/libjpeg
+JPEG_PATH := thirdparty/libjpeg
 JPEG_LIB := jpeg
 
-PNG_PATH := ./thirdparty/libpng
+PNG_PATH := thirdparty/libpng
 PNG_LIB := png
 
-ZLIB_MAKEFILE = thirdparty/zlib.mk
-JPEG_MAKEFILE = thirdparty/libjpeg.mk
-PNG_MAKEFILE = thirdparty/libpng.mk
-CURL_MAKEFILE = thirdparty/libcurl.mk
+Z_PATH := thirdparty/zlib
+Z_LIB := z
 
 ifeq ($(OS),Windows_NT)
     #CCFLAGS += -D WIN32
     MAKE := mingw32-make.exe
+    THIRDPARTY_LIBRARIES = zlib png jpeg curl
     SAIM_MAKEFILE = makefile-mingw32.mk
-    CURL_PATH := ./thirdparty/libcurl
+    ZLIB_MAKEFILE = thirdparty/zlib/mingw32.mk
+	JPEG_MAKEFILE = thirdparty/libjpeg/mingw32.mk
+	PNG_MAKEFILE = thirdparty/libpng/mingw32.mk
+	CURL_MAKEFILE = thirdparty/libcurl/mingw32.mk
+    CURL_PATH := thirdparty/libcurl
 	CURL_LIB := curl
     ifeq ($(PROCESSOR_ARCHITEW6432),AMD64)
         #CCFLAGS += -D AMD64
@@ -31,16 +34,18 @@ ifeq ($(OS),Windows_NT)
     endif
 else
 	MAKE := make
+	THIRDPARTY_LIBRARIES = zlib png jpeg
+	SAIM_MAKEFILE = makefile-unix.mk
+	ZLIB_MAKEFILE = thirdparty/zlib/unix.mk
+	JPEG_MAKEFILE = thirdparty/libjpeg/unix.mk
+	PNG_MAKEFILE = thirdparty/libpng/unix.mk
+    INSTALL_PATH := /usr/local/lib
     UNAME_S := $(shell uname -s)
     ifeq ($(UNAME_S),Linux)
         #CCFLAGS += -D LINUX
-        SAIM_MAKEFILE = makefile-unix.mk
-        INSTALL_PATH := /usr/local/lib
     endif
     ifeq ($(UNAME_S),Darwin)
         #CCFLAGS += -D OSX
-        SAIM_MAKEFILE = makefile-unix.mk
-        INSTALL_PATH := /usr/local/lib
         # OSX has its own CURL with command line tools
         CURL_LIB := curl
     endif
@@ -62,13 +67,15 @@ export JPEG_PATH
 export JPEG_LIB
 export PNG_PATH
 export PNG_LIB
+export Z_PATH
+export Z_LIB
 export INSTALL_PATH
 
 all:
 	$(MAKE) -f $(SAIM_MAKEFILE) IS_STATIC=YES
 	$(MAKE) -f $(SAIM_MAKEFILE) IS_STATIC=NO
 
-thirdparty: zlib png jpeg
+thirdparty: $(THIRDPARTY_LIBRARIES)
 
 zlib:
 	$(MAKE) -f $(ZLIB_MAKEFILE) IS_STATIC=YES

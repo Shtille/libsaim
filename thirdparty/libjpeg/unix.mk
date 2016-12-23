@@ -1,12 +1,14 @@
 # Makefile for Unix
 
-LIB_PATH = libcurl/src
-
-TARGET = curl
-ROOT_PATH = ..
+TARGET = jpeg
+ROOT_PATH = .
 TARGET_PATH = $(ROOT_PATH)/bin
 STATIC_LIB = lib$(TARGET).a
 SHARED_LIB = lib$(TARGET).so
+
+LIB_PATH = $(ROOT_PATH)/thirdparty/libjpeg/src
+
+include $(ROOT_PATH)/thirdparty/libjpeg/sources.mk
 
 ifeq ($(IS_STATIC),NO)
 TARGET_TYPE = dynamic
@@ -22,10 +24,7 @@ AR = ar rcs
 CP = cp
 RM = rm -f
 
-INCLUDE += -I$(LIB_PATH)/../include \
-		   -I$(LIB_PATH)
-
-DEFINES = -DBUILDING_LIBCURL -DCURL_STATICLIB
+INCLUDE += -I$(LIB_PATH) -I$(LIB_PATH)/../include
 
 CFLAGS = -g -Wall -O3 -std=c99
 CFLAGS += $(INCLUDE)
@@ -33,16 +32,13 @@ CFLAGS += $(DEFINES)
 
 LDFLAGS = -shared -fPIC
 
-SRC_DIRS = $(LIB_PATH)
-SRC_DIRS += $(LIB_PATH)/vauth
-SRC_DIRS += $(LIB_PATH)/vtls
-SRC_FILES = $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
-
 OBJECTS = $(SRC_FILES:.c=.o)
 
 LIBRARIES =
 
+ifeq ($(INSTALL_PATH),)
 INSTALL_PATH = $(TARGET_PATH)
+endif
 
 all: $(SRC_FILES) $(TARGET)
 	@echo All is done!
@@ -50,7 +46,7 @@ all: $(SRC_FILES) $(TARGET)
 $(TARGET): create_dir clean $(TARGET_TYPE) install
 
 create_dir:
-	@test -d $(TARGET_PATH) || mkdir $(TARGET_PATH)
+	@test -d $(INSTALL_PATH) || mkdir $(INSTALL_PATH)
 
 clean:
 	@find $(LIB_PATH) -name "*.o" -type f -delete

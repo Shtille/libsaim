@@ -6,7 +6,7 @@ TARGET_PATH = $(ROOT_PATH)/bin
 STATIC_LIB = lib$(TARGET).a
 SHARED_LIB = lib$(TARGET).so
 
-LIB_PATH = $(ROOT_PATH)/thirdparty/zlib/src
+LIB_PATH = $(Z_PATH)/src
 
 ifeq ($(IS_STATIC),NO)
 TARGET_TYPE = dynamic
@@ -47,7 +47,7 @@ all: $(SRC_FILES) $(TARGET)
 $(TARGET): create_dir clean $(TARGET_TYPE) install
 
 create_dir:
-	@test -d $(TARGET_PATH) || mkdir $(TARGET_PATH)
+	@test -d $(INSTALL_PATH) || mkdir $(INSTALL_PATH)
 
 clean:
 	@find $(LIB_PATH) -name "*.o" -type f -delete

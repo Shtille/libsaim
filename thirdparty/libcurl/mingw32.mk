@@ -1,15 +1,12 @@
-# Makefile for Unix
+# Makefile for Windows
 
-TARGET = png
+TARGET = curl
 ROOT_PATH = .
-TARGET_PATH = $(ROOT_PATH)/bin
+TARGET_PATH = $(ROOT_PATH)\bin
 STATIC_LIB = lib$(TARGET).a
 SHARED_LIB = lib$(TARGET).so
 
-LIB_PATH = $(ROOT_PATH)/thirdparty/libpng/src
-ZLIB_PATH = $(ROOT_PATH)/thirdparty/zlib
-
-include $(ROOT_PATH)/thirdparty/libpng-sources.mk
+LIB_PATH = $(ROOT_PATH)/thirdparty/libcurl/src
 
 ifeq ($(IS_STATIC),NO)
 TARGET_TYPE = dynamic
@@ -22,29 +19,30 @@ endif
 CC = gcc
 AR = ar rcs
 
-CP = cp
-RM = rm -f
+CP = @copy /Y
+RM = @del /Q
 
 INCLUDE += -I$(LIB_PATH)/../include \
-		   -I$(LIB_PATH) \
-		   -I$(ZLIB_PATH)/include \
-		   -I$(ZLIB_PATH)/src
+		   -I$(LIB_PATH)
 
-DEFINES = -DPNG_USER_WIDTH_MAX=16384 -DPNG_USER_HEIGHT_MAX=16384
+DEFINES = -DBUILDING_LIBCURL -DCURL_STATICLIB
 
 CFLAGS = -g -Wall -O3 -std=c99
 CFLAGS += $(INCLUDE)
 CFLAGS += $(DEFINES)
 
-LDFLAGS = -shared -fPIC
+LDFLAGS = -s -shared
+
+SRC_DIRS = $(LIB_PATH)
+SRC_DIRS += $(LIB_PATH)/vauth
+SRC_DIRS += $(LIB_PATH)/vtls
+SRC_FILES = $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
 
 OBJECTS = $(SRC_FILES:.c=.o)
 
-LIBRARIES = -lz
+LIBRARIES = -lWs2_32 -lWldap32
 
-ifeq ($(INSTALL_PATH),)
 INSTALL_PATH = $(TARGET_PATH)
-endif
 
 all: $(SRC_FILES) $(TARGET)
 	@echo All is done!
@@ -52,15 +50,15 @@ all: $(SRC_FILES) $(TARGET)
 $(TARGET): create_dir clean $(TARGET_TYPE) install
 
 create_dir:
-	@test -d $(TARGET_PATH) || mkdir $(TARGET_PATH)
+	@if not exist $(INSTALL_PATH) mkdir $(INSTALL_PATH)
 
 clean:
-	@find $(LIB_PATH) -name "*.o" -type f -delete
+	@for /r %%R in (*.o) do (if exist %%R del /Q %%R)
 
 install:
 	@echo installing to $(INSTALL_PATH)
-	@$(RM) $(INSTALL_PATH)/$(TARGET_FILE)
-	@$(CP) $(TARGET_FILE) $(INSTALL_PATH)/$(TARGET_FILE)
+	@$(RM) $(INSTALL_PATH)\$(TARGET_FILE)
+	@$(CP) $(TARGET_FILE) $(INSTALL_PATH)\$(TARGET_FILE)
 	@$(RM) $(TARGET_FILE)
     
 static: $(OBJECTS)

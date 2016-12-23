@@ -1,11 +1,12 @@
-# Makefile for windows
-# This makefile has been made for compilation possibility under systems without Visual Studio 2013
+# Makefile for Windows
 
-TARGET = saim
+TARGET = z
 ROOT_PATH = .
 TARGET_PATH = $(ROOT_PATH)\bin
 STATIC_LIB = lib$(TARGET).a
 SHARED_LIB = lib$(TARGET).so
+
+LIB_PATH = $(Z_PATH)/src
 
 ifeq ($(IS_STATIC),NO)
 TARGET_TYPE = dynamic
@@ -15,34 +16,13 @@ TARGET_TYPE = static
 TARGET_FILE = $(STATIC_LIB)
 endif
 
-ifeq ($(INSTALL_PATH),)
-INSTALL_PATH = $(TARGET_PATH)
-endif
-
 CC = gcc
 AR = ar rcs
 
 CP = @copy /Y
 RM = @del /Q
 
-LIB_PATH = $(ROOT_PATH)\src
-
-INCLUDE += -I$(LIB_PATH) -I$(ROOT_PATH)\include
-ifneq ($(CURL_PATH),)
-INCLUDE += -I$(CURL_PATH)\include
-endif
-ifneq ($(JPEG_PATH),)
-INCLUDE += -I$(JPEG_PATH)\include
-endif
-ifneq ($(PNG_PATH),)
-INCLUDE += -I$(PNG_PATH)\include
-endif
-
-DEFINES = -DBUILDING_LIBSAIM
-ifneq ($(IS_STATIC),NO)
-DEFINES += -DSAIM_STATICLIB
-endif
-DEFINES += -DCURL_STATICLIB
+INCLUDE += -I$(LIB_PATH) -I$(LIB_PATH)/../include
 
 CFLAGS = -g -Wall -O3 -std=c99
 CFLAGS += $(INCLUDE)
@@ -51,27 +31,15 @@ CFLAGS += $(DEFINES)
 LDFLAGS = -s -shared
 
 SRC_DIRS = $(LIB_PATH)
-SRC_DIRS += $(LIB_PATH)/rasterizer
-SRC_DIRS += $(LIB_PATH)/util
-SRC_DIRS += $(ROOT_PATH)/deps
 SRC_FILES = $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
 
 OBJECTS = $(SRC_FILES:.c=.o)
 
-LIBRARIES = -L$(INSTALL_PATH)
-ifneq ($(CURL_LIB),)
-LIBRARIES += -l$(CURL_LIB)
+LIBRARIES =
+
+ifeq ($(INSTALL_PATH),)
+INSTALL_PATH = $(TARGET_PATH)
 endif
-ifneq ($(JPEG_LIB),)
-LIBRARIES += -l$(JPEG_LIB)
-endif
-ifneq ($(PNG_LIB),)
-LIBRARIES += -l$(PNG_LIB)
-endif
-ifneq ($(Z_LIB),)
-LIBRARIES += -l$(Z_LIB)
-endif
-LIBRARIES += -lWs2_32 -lWldap32
 
 all: $(SRC_FILES) $(TARGET)
 	@echo All is done!
@@ -86,7 +54,7 @@ clean:
 
 install:
 	@echo installing to $(INSTALL_PATH)
-	@if exist $(INSTALL_PATH)\$(TARGET_FILE) $(RM) $(INSTALL_PATH)\$(TARGET_FILE)
+	@$(RM) $(INSTALL_PATH)\$(TARGET_FILE)
 	@$(CP) $(TARGET_FILE) $(INSTALL_PATH)\$(TARGET_FILE)
 	@$(RM) $(TARGET_FILE)
     
