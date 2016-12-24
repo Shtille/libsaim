@@ -80,6 +80,13 @@ It provides few functions:
 
 Also there's a working example in `/src/tests/app_c` directory.
 
+If you feel like using another tile service you should copy formatted char string into `string` member of `saim_provider_info` argument.
+
+This string should be something like: `http://my.imagery.server.com/tile/{z}/{y}/{x}`.
+- Parameter `{z}` corresponds for a tile level (between `min_lod` and `max_lod`).
+- Parameter `{x}` corresponds for a tile x coordinate (between `0` and `(1 << z)-1`).
+- Parameter `{y}` corresponds for a tile y coordinate (between `0` and `(1 << z)-1`).
+
 Contributing
 ------------
 
