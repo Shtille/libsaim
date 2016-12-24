@@ -90,7 +90,7 @@ int saim_render_aligned(double upper_latitude, double left_longitude, double low
  *  @param[in] left_longitude  Longitude of the upper left point of rendered rectangle, degrees.
  *  @param[in] lower_latitude  Latitude of the lower right point of rendered rectangle, degrees.
  *  @param[in] right_longitude Longitude of the lower right point of rendered rectangle, degrees.
- *  @param[in] angle           Rotation angle of rectangle, counter clock wise, degrees.
+ *  @param[in] angle           Rotation angle of rectangle, clock wise, degrees.
  *  @return                    Returns number of tiles that are left to load (0 if buffer has been filled) and
  *			   				   -1 in case of error.
 */
