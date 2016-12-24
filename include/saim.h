@@ -29,6 +29,32 @@
 
 #include "saim_provider_info.h"
 
+#ifdef _WIN32
+
+#ifdef BUILDING_LIBSAIM
+
+#ifndef SAIM_STATICLIB
+#define SAIM_EXPORT __declspec(dllexport)
+#endif /* SAIM_STATICLIB */
+
+#else /* BUILDING_LIBSAIM */
+
+#ifndef SAIM_STATICLIB
+#define SAIM_EXPORT __declspec(dllimport)
+#endif /* SAIM_STATICLIB */
+
+#endif /* BUILDING_LIBSAIM */
+
+#else /* _WIN32 */
+
+#define SAIM_EXPORT extern
+
+#endif /* _WIN32 */
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /*! @brief Library initialization function.
  *  @param[in] path          A path there tiles storage is located.
  *  @param[in] provider_info Pointer to provider info that discribes tiles services parameters.
@@ -69,5 +95,9 @@ int saim_render_aligned(double upper_latitude, double left_longitude, double low
  *			   				   -1 in case of error.
 */
 int saim_render_common(double upper_latitude, double left_longitude, double lower_latitude, double right_longitude, float angle);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif
