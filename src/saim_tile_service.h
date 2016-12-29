@@ -37,8 +37,9 @@ typedef struct saim_tile_service saim_tile_service;
 
 struct saim_tile_service {
 	mtx_t critical_section;				//!< critical section handle
+	cnd_t condition_variable;			//!< condition variable
 	thrd_t thread;						//!< thread handle
-	saim_curl_wrapper curl_wrapper;	//!< each service has its own instance of curl wrapper
+	saim_curl_wrapper curl_wrapper;		//!< each service has its own instance of curl wrapper
 	saim_list tasks;					//!< tasks list
 	bool finishing;						//!< finishing flag
 };

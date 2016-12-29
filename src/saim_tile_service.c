@@ -65,8 +65,11 @@ static int thread_func(void * arg)
 
 		if (task == NULL)
 		{
-			// There is no tasks to process, sleep a bit
-			thrd_yield();
+			// Wait for any signal to come
+			mtx_lock(&service->critical_section);
+			while (service->tasks.length == 0 && !service->finishing)
+				cnd_wait(&service->condition_variable, &service->critical_section);
+			mtx_unlock(&service->critical_section);
 			continue;
 		}
 
@@ -108,6 +111,11 @@ bool saim_tile_service__create(saim_tile_service * service)
 		fprintf(stderr, "saim: mutex init failed\n");
 		return false;
 	}
+	if (cnd_init(&service->condition_variable) == thrd_error)
+	{
+		fprintf(stderr, "saim: condition variable init failed\n");
+		return false;
+	}
 	if (!saim_curl_wrapper__create(&service->curl_wrapper))
 		return false;
 	// Init task list
@@ -124,6 +132,7 @@ void saim_tile_service__destroy(saim_tile_service * service)
 	saim_list_destroy(&service->tasks);
 
 	saim_curl_wrapper__destroy(&service->curl_wrapper);
+	cnd_destroy(&service->condition_variable);
 	mtx_destroy(&service->critical_section);
 }
 void saim_tile_service__run_service(saim_tile_service * service)
@@ -137,6 +146,7 @@ void saim_tile_service__stop_service(saim_tile_service * service)
 {
 	mtx_lock(&service->critical_section);
 	service->finishing = true;
+	cnd_signal(&service->condition_variable);
 	mtx_unlock(&service->critical_section);
 	thrd_join(service->thread, NULL);
 }
@@ -150,6 +160,7 @@ void saim_tile_service__add_task(saim_tile_service * service, saim_tile_service_
 {
 	mtx_lock(&service->critical_section);
 	saim_list_push_back(&service->tasks, task);
+	cnd_signal(&service->condition_variable);
 	mtx_unlock(&service->critical_section);
 }
 unsigned int saim_tile_service__get_pending_count(saim_tile_service * service)
