@@ -215,5 +215,5 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	Unload();
 
-	return msg.wParam;
+	return (int)msg.wParam;
 }
