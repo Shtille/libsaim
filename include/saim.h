@@ -29,6 +29,10 @@
 
 #include "saim_provider_info.h"
 
+#ifndef SAIM_VERSION
+#define SAIM_VERSION 101
+#endif
+
 #ifdef _WIN32
 
 #ifdef BUILDING_LIBSAIM
@@ -74,6 +78,11 @@ void saim_cleanup();
  *  @param[in] bytes_per_pixel Number of bytes per pixel of the target buffer.
 */
 void saim_set_target(unsigned char * buffer, int width, int height, int bytes_per_pixel);
+
+/*! @brief Setups maximum bitmap cache size (capacity).
+ *  @param[in] size            Size of bitmap.
+*/
+void saim_set_bitmap_cache_size(unsigned int size);
 
 /*! @brief Renders saved bitmaps onto aligned target surface.
  *  @param[in] upper_latitude  Latitude of the upper left point of rendered rectangle, degrees.

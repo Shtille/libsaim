@@ -93,6 +93,10 @@ void saim_set_target(unsigned char * buffer, int width, int height, int bytes_pe
 	s_rasterizer->target_height = height;
 	s_rasterizer->target_bpp = bytes_per_pixel;
 }
+void saim_set_bitmap_cache_size(unsigned int size)
+{
+	s_rasterizer->max_bitmap_cache_size = size;
+}
 int saim_render_aligned(double upper_latitude, double left_longitude, double lower_latitude, double right_longitude)
 {
 	return saim_rasterizer__render_aligned(s_rasterizer,
