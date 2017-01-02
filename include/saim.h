@@ -30,7 +30,7 @@
 #include "saim_provider_info.h"
 
 #ifndef SAIM_VERSION
-#define SAIM_VERSION 101
+#define SAIM_VERSION 102
 #endif
 
 #ifdef _WIN32
@@ -83,6 +83,21 @@ void saim_set_target(unsigned char * buffer, int width, int height, int bytes_pe
  *  @param[in] size            Size of bitmap.
 */
 void saim_set_bitmap_cache_size(unsigned int size);
+
+/*! @brief Defines user functions to allocate and deallocate memory.
+ *  @param[in] user_malloc     User malloc function pointer.
+ *  @param[in] user_calloc     User calloc function pointer.
+ *  @param[in] user_realloc    User realloc function pointer.
+ *  @param[in] user_free       User free function pointer.
+ *  @param[in] user_strdup     User strdup function pointer.
+*/
+void saim_set_memory_functions(
+	void* (*user_malloc)(size_t /*size*/),
+	void* (*user_calloc)(size_t /*num*/, size_t /*size*/),
+	void* (*user_realloc)(void* /*what*/, size_t /*size*/),
+	void(*user_free)(void* /*what*/),
+	char* (*user_strdup)(const char* /*str*/)
+);
 
 /*! @brief Renders saved bitmaps onto aligned target surface.
  *  @param[in] upper_latitude  Latitude of the upper left point of rendered rectangle, degrees.
