@@ -30,6 +30,7 @@ void Model::SetTarget(int width, int height)
 		delete[] buffer_;
 	buffer_ = new unsigned char[width_ * height_ * bytes_per_pixel_];
 	saim_set_target(buffer_, width_, height_, bytes_per_pixel_);
+	saim_set_bitmap_cache_size(50);
 }
 void Model::ConvertRgbToBgr()
 {
