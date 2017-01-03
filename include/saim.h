@@ -29,6 +29,8 @@
 
 #include "saim_provider_info.h"
 
+#include <stdlib.h>
+
 #ifndef SAIM_VERSION
 #define SAIM_VERSION 102
 #endif
