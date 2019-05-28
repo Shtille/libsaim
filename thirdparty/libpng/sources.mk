@@ -1,16 +1,16 @@
 SRC_FILES = \
-        $(LIB_PATH)/png.c      \
-        $(LIB_PATH)/pngerror.c \
-        $(LIB_PATH)/pngget.c   \
-        $(LIB_PATH)/pngmem.c   \
-        $(LIB_PATH)/pngpread.c \
-        $(LIB_PATH)/pngread.c  \
-        $(LIB_PATH)/pngrio.c   \
-        $(LIB_PATH)/pngrtran.c \
-        $(LIB_PATH)/pngrutil.c \
-        $(LIB_PATH)/pngset.c   \
-        $(LIB_PATH)/pngtrans.c \
-        $(LIB_PATH)/pngwio.c   \
-        $(LIB_PATH)/pngwrite.c \
-        $(LIB_PATH)/pngwtran.c \
-        $(LIB_PATH)/pngwutil.c
+        src/png.c      \
+        src/pngerror.c \
+        src/pngget.c   \
+        src/pngmem.c   \
+        src/pngpread.c \
+        src/pngread.c  \
+        src/pngrio.c   \
+        src/pngrtran.c \
+        src/pngrutil.c \
+        src/pngset.c   \
+        src/pngtrans.c \
+        src/pngwio.c   \
+        src/pngwrite.c \
+        src/pngwtran.c \
+        src/pngwutil.c

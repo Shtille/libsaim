@@ -104,7 +104,8 @@ ipch/
 bin/*
 lib/*
 
-# libsaim object files
+# Some intermediate files
 *.o
-*.o.s
-*.o.d
+*.d
+*.a
+*.so
