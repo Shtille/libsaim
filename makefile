@@ -36,7 +36,10 @@ export CXX
 export AR
 export LDFLAGS
 
-LIBRARY_DIRS = thirdparty
+LIBRARY_DIRS = 
+ifneq ($(USE_THIRDPARTY),NO)
+LIBRARY_DIRS += thirdparty
+endif
 BINARY_DIRS = 
 DIRS_ORDER = \
 	$(LIBRARY_DIRS) saim install_libs \
