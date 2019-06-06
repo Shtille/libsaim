@@ -69,6 +69,8 @@ int saim_rasterizer__render_aligned(saim_rasterizer * rasterizer,
 	double upper_latitude, double left_longitude, double lower_latitude, double right_longitude);
 int saim_rasterizer__render_common(saim_rasterizer * rasterizer,
 	double upper_latitude, double left_longitude, double lower_latitude, double right_longitude, float angle);
+int saim_rasterizer__render_mapped_cube(saim_rasterizer * rasterizer,
+	int face, int lod, int x, int y);
 
 // Some function for inner use
 
@@ -93,12 +95,18 @@ void saim_rasterizer__data_transform(saim_rasterizer * rasterizer);
 void saim_rasterizer__pre_render(saim_rasterizer * rasterizer,
 	double upper_latitude, double left_longitude, double lower_latitude, double right_longitude,
 	int* num_tiles_to_load, int* optimal_lod);
+void saim_rasterizer__pre_render_cube(saim_rasterizer * rasterizer,
+	int face, int lod, int x, int y,
+	int* num_tiles_to_load, int* optimal_lod);
+
 void saim_rasterizer__render_aligned_impl(saim_rasterizer * rasterizer,
 	double upper_latitude, double left_longitude, double lower_latitude, double right_longitude,
 	int level_of_detail);
 void saim_rasterizer__render_common_impl(saim_rasterizer * rasterizer,
 	double upper_latitude, double left_longitude, double lower_latitude, double right_longitude,
 	int level_of_detail, float sin_angle, float cos_angle);
+void saim_rasterizer__render_mapped_cube_impl(saim_rasterizer * rasterizer,
+	int face, double u_min, double v_min, double u_max, double v_max, int level_of_detail);
 
 void saim_rasterizer__initialize_bitmap_buffer(saim_rasterizer * rasterizer, 
 	int key_min_x, int key_max_x, int key_min_y, int key_max_y, int level_of_detail, bool is_break);

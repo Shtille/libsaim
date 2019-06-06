@@ -76,4 +76,12 @@ void saim_lat_long_to_tile_xy(double latitude, double longitude, int level_of_de
 // @return Optimal level of detail
 int saim_get_optimal_level_of_detail(double screen_pixel_size_x);
 
+//! Projects cube point onto sphere point (geodetic coordinates).
+// @param[in] face Index of the face of the cube (from 0 to 5).
+// @param[in] u First coordinate of face point.
+// @param[in] v Second coordinate of face point.
+// @param[out] latitude Latitude of the sphere point, in degrees.
+// @param[out] longitude Longitude of the sphere point, in degrees.
+void saim_cube_point_to_lat_lon(int face, double u, double v, double* latitude, double* longitude);
+
 #endif

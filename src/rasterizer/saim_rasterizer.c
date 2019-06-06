@@ -130,6 +130,33 @@ int saim_rasterizer__render_common(saim_rasterizer * rasterizer,
 		upper_latitude, left_longitude, lower_latitude, right_longitude, optimal_lod, sin_angle, cos_angle);
 	return num_tiles_to_load;
 }
+int saim_rasterizer__render_mapped_cube(saim_rasterizer * rasterizer,
+	int face, int lod, int x, int y)
+{
+	int num_tiles_to_load, optimal_lod;
+	if (rasterizer->target_buffer == 0)
+	{
+		fprintf(stderr, "saim: target buffer hasn't been set\n");
+		return -1;
+	}
+	// Request tiles to load and process loaded ones
+	saim_rasterizer__pre_render_cube(rasterizer,
+		face, lod, x, y,
+		&num_tiles_to_load, &optimal_lod);
+
+	// Render finally
+	const double inv_scale = 2. / (double)(1 << lod);
+	const double position_x = -1. + inv_scale * x;
+	const double position_y = -1. + inv_scale * y;
+
+	double u_min = position_x;
+	double v_min = position_y;
+	double u_max = position_x + inv_scale;
+	double v_max = position_y + inv_scale;
+	saim_rasterizer__render_mapped_cube_impl(rasterizer,
+		face, u_min, v_min, u_max, v_max, optimal_lod);
+	return num_tiles_to_load;
+}
 
 // -------------------- Internal use only functions -------------------------
 
@@ -458,6 +485,148 @@ void saim_rasterizer__pre_render(saim_rasterizer * rasterizer,
     // Transform any pending data
     saim_rasterizer__data_transform(rasterizer);
 }
+void saim_rasterizer__pre_render_cube(saim_rasterizer * rasterizer,
+	int face, int lod, int x, int y,
+	int* num_tiles_to_load, int* optimal_lod)
+{
+	int left, right, top, bottom;
+	saim_data_key key, key_low;
+	const saim_bitmap * bitmap, *bitmap_low;
+
+	double two_power_lod = (double)(1 << lod);
+	double screen_pixel_size_x = (90.0 / two_power_lod) / (double)rasterizer->target_width;
+	*optimal_lod = saim_get_optimal_level_of_detail(screen_pixel_size_x);
+
+	int tiles_per_side = 1 << *optimal_lod;
+
+	// Calculate bounding box via two different methods
+	if (lod == 0) // bad case
+	{
+		left = top = 0;
+		right = bottom = tiles_per_side - 1;
+	}
+	else // lod != 0, normal case
+	{
+		const double inv_scale = 2. / two_power_lod;
+		const double position_x = -1. + inv_scale * x;
+		const double position_y = -1. + inv_scale * y;
+
+		double u_min = position_x;
+		double v_min = position_y;
+		double u_max = position_x + inv_scale;
+		double v_max = position_y + inv_scale;
+
+		// Calculate bounding box
+		double points[4][2] = {
+			// Angular points
+			{ u_min, v_min },
+			{ u_max, v_min },
+			{ u_max, v_max },
+			{ u_min, v_max }
+		};
+		double latitude, longitude;
+		double max_latitude, min_longitude, min_latitude, max_longitude;
+		min_latitude = 100.0;
+		min_longitude = 200.0;
+		max_latitude = -100.0;
+		max_longitude = -200.0;
+		for (int i = 0; i < 4; ++i)
+		{
+			saim_cube_point_to_lat_lon(face, points[i][0], points[i][1], &latitude, &longitude);
+			const double kEpsilon = 0.000001;
+			const bool is_pole = (latitude > 90.0 - kEpsilon) || (latitude < -90.0 + kEpsilon); // latitude == 90.0 or -90.0
+			const bool is_jump = (longitude > 180.0 - kEpsilon) || (longitude < -180.0 + kEpsilon); // longitude == 180.0 or -180.0
+			if (is_jump)
+			{
+				// Correct sign of longitude to the center of the tile
+				double center_latitude, center_longitude;
+				saim_cube_point_to_lat_lon(face, 0.5 * (u_min + u_max), 0.5 * (v_min + v_max), &center_latitude, &center_longitude);
+				longitude = (center_longitude > 0.0) ? 180.0 : -180.0;
+			}
+			if (latitude < min_latitude)
+				min_latitude = latitude;
+			if (longitude < min_longitude && !is_pole)
+				min_longitude = longitude;
+			if (latitude > max_latitude)
+				max_latitude = latitude;
+			if (longitude > max_longitude && !is_pole)
+				max_longitude = longitude;
+		}
+
+		// Compute tile keys for bound rect
+		saim_lat_long_to_tile_xy(max_latitude, saim_normalized_longitude(min_longitude),
+			*optimal_lod, &left, &top);
+		saim_lat_long_to_tile_xy(min_latitude, saim_normalized_longitude(max_longitude),
+			*optimal_lod, &right, &bottom);
+	}
+
+	// Calculate number of tiles (bitmaps) in longitude (x) direction
+	int num_x = right - left + 1;
+	bool has_break = (num_x <= 0);
+	if (has_break)
+		num_x += tiles_per_side;
+
+	saim_rasterizer__initialize_bitmap_buffer(rasterizer, left, right, top, bottom, *optimal_lod, has_break);
+
+	// Transform rect to list of keys
+	*num_tiles_to_load = 0;
+
+	for (int y = top; y <= bottom; ++y)
+	{
+		for (int i = 0; i < num_x; ++i)
+		{
+			int x = (left + i) % tiles_per_side;
+			// Add a key to the list
+			saim_data_key__create(&key, x, y, *optimal_lod);
+			bitmap = saim_rasterizer__get_bitmap(rasterizer, &key, true);
+
+			if (bitmap == NULL) // not loaded yet
+			{
+				++*num_tiles_to_load;
+
+				saim_rasterizer__push_request(rasterizer, &key);
+
+				// Try to use low detailed version of bitmap when it didn't load
+				bool bitmap_found = false;
+				bool lazy_bitmap_found = false;
+				for (int i = 1; i <= *optimal_lod - s_provider->min_lod; ++i)
+				{
+					int lod = *optimal_lod - i;
+					int key_x_low = x >> i;
+					int key_y_low = y >> i;
+					saim_data_key__create(&key_low, key_x_low, key_y_low, lod);
+					bitmap_low = saim_rasterizer__get_bitmap(rasterizer, &key_low, false);
+					if (bitmap_low)
+					{
+						bitmap_found = true;
+						saim_rasterizer__set_bitmap_low_for_buffer(rasterizer, lod, x, y, bitmap_low);
+						break;
+					}
+					else
+					{
+						// Poor internet fix to push low detailed cached bitmaps to load
+						if (!lazy_bitmap_found && saim_cache__is_exist(s_cache, &key_low))
+						{
+							lazy_bitmap_found = true;
+							saim_rasterizer__push_request(rasterizer, &key_low);
+						}
+					}
+				}
+
+				// Otherwise nothing to render
+				if (!bitmap_found)
+					saim_rasterizer__set_bitmap_for_buffer(rasterizer, x, y, NULL);
+			}
+			else
+			{
+				saim_rasterizer__set_bitmap_for_buffer(rasterizer, x, y, bitmap);
+			}
+		} // for i
+	} // for y
+
+	// Transform any pending data
+	saim_rasterizer__data_transform(rasterizer);
+}
 void saim_rasterizer__render_aligned_impl(saim_rasterizer * rasterizer,
 	double upper_latitude,
 	double left_longitude,
@@ -724,6 +893,80 @@ void saim_rasterizer__render_common_impl(saim_rasterizer * rasterizer,
 			{
 				int bitmap_x = x_pixels[x_mapped];
 				int bitmap_y = y_pixels[y_mapped];
+				int bitmap_x_low = bitmap_x >> info->level_ascending;
+				int sample_x_low = bitmap_x_low % kBitmapWidth;
+				int bitmap_y_low = bitmap_y >> info->level_ascending;
+				int sample_y_low = bitmap_y_low % kBitmapHeight;
+				src_index = sample_y_low * kBitmapWidth + sample_x_low;
+			}
+			src_index *= screen_bpp;
+
+			// Formula for pixel offset is pixel[(y * width + x) * bpp]
+			memcpy(dst + dst_index, src + src_index, screen_bpp);
+
+			dst_index += screen_bpp;
+		} // for x
+	} // for y
+}
+void saim_rasterizer__render_mapped_cube_impl(saim_rasterizer * rasterizer,
+	int face, double u_min, double v_min, double u_max, double v_max, int level_of_detail)
+{
+	// Bitmap should have the same BPP as the target buffer
+	unsigned char * dst = rasterizer->target_buffer;
+
+	const int screen_width = rasterizer->target_width;
+	const int screen_height = rasterizer->target_height;
+	const int screen_bpp = rasterizer->target_bpp;
+	const int kBitmapWidth = s_provider->bitmap_width;
+	const int kBitmapHeight = s_provider->bitmap_height;
+
+	int map_size = kBitmapWidth << level_of_detail;
+
+	// Compute pixel sizes
+	double screen_pixel_size_u = (u_max - u_min) / (double)screen_width;
+	double screen_pixel_size_v = (v_max - v_min) / (double)screen_height;
+
+	// Nothing to bufferize. Pretty sad.
+	int dst_index = 0;
+	for (int y = 0; y < screen_height; ++y)
+	{
+		double v = v_min + ((double)y + 0.5) * screen_pixel_size_v;
+		for (int x = 0; x < screen_width; ++x)
+		{
+			double u = u_min + ((double)x + 0.5) * screen_pixel_size_u;
+			double latitude, longitude;
+			saim_cube_point_to_lat_lon(face, u, v, &latitude, &longitude);
+			double pixel_lon = saim_normalized_longitude(longitude);
+			double pixel_lat = latitude;
+			int bitmap_x, bitmap_y;
+			saim_longitude_to_pixel_x(pixel_lon, map_size, &bitmap_x);
+			saim_latitude_to_pixel_y(pixel_lat, map_size, &bitmap_y);
+			int key_x = bitmap_x / kBitmapWidth;
+			int key_y = bitmap_y / kBitmapHeight;
+
+			const saim_buffered_bitmap_info * info;
+			info = saim_rasterizer__get_bitmap_from_buffer(rasterizer, key_x, key_y);
+			assert(info);
+			if (info->bitmap == NULL)
+			{
+				// Tile hasn't been loaded yet
+				dst_index += screen_bpp;
+				continue;
+			}
+
+			int sample_x = bitmap_x % kBitmapWidth;
+			int sample_y = bitmap_y % kBitmapHeight;
+
+			unsigned char * src = info->bitmap->data;
+			assert(src);
+
+			int src_index;
+			if (info->level_ascending == 0)
+			{
+				src_index = sample_y * kBitmapWidth + sample_x;
+			}
+			else
+			{
 				int bitmap_x_low = bitmap_x >> info->level_ascending;
 				int sample_x_low = bitmap_x_low % kBitmapWidth;
 				int bitmap_y_low = bitmap_y >> info->level_ascending;

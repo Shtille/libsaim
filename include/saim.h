@@ -32,7 +32,7 @@
 #include <stdlib.h>
 
 #ifndef SAIM_VERSION
-#define SAIM_VERSION 102
+#define SAIM_VERSION 103
 #endif
 
 #ifdef _WIN32
@@ -101,7 +101,8 @@ void saim_set_memory_functions(
 	char* (*user_strdup)(const char* /*str*/)
 );
 
-/*! @brief Renders saved bitmaps onto aligned target surface.
+/*! @brief Renders desired region with view rectangle aligned to axis.
+ *  Used projection is linear to latitude and longitude.
  *  @param[in] upper_latitude  Latitude of the upper left point of rendered rectangle, degrees.
  *  @param[in] left_longitude  Longitude of the upper left point of rendered rectangle, degrees.
  *  @param[in] lower_latitude  Latitude of the lower right point of rendered rectangle, degrees.
@@ -111,7 +112,8 @@ void saim_set_memory_functions(
 */
 int saim_render_aligned(double upper_latitude, double left_longitude, double lower_latitude, double right_longitude);
 
-/*! @brief Renders saved bitmaps onto target surface.
+/*! @brief Renders desired region with rotated view rectangle.
+ *  Used projection is linear to latitude and longitude.
  *  @param[in] upper_latitude  Latitude of the upper left point of rendered rectangle, degrees.
  *  @param[in] left_longitude  Longitude of the upper left point of rendered rectangle, degrees.
  *  @param[in] lower_latitude  Latitude of the lower right point of rendered rectangle, degrees.
@@ -121,6 +123,17 @@ int saim_render_aligned(double upper_latitude, double left_longitude, double low
  *			   				   -1 in case of error.
 */
 int saim_render_common(double upper_latitude, double left_longitude, double lower_latitude, double right_longitude, float angle);
+
+/*! @brief Renders cube face tile using saved bitmaps.
+ *  Cube is being mapped onto sphere. This the best way for rendering the sphere.
+ *  Each cube face is being split via quad tree.
+ *  
+ *  @param[in] face Index of the face of the cube (from 0 to 5).
+ *  @param[in] lod Level of detail of the tile.
+ *  @param[in] x X coordinate of the tile.
+ *  @param[in] y Y coordinate of the tile.
+ */
+int saim_render_mapped_cube(int face, int lod, int x, int y);
 
 #ifdef __cplusplus
 }
