@@ -72,7 +72,7 @@ $(BINARY_DIRS):
 	@$(MAKE) -C $@ $@
 
 saim:
-	@$(MAKE) -f saim.mk
+	@$(MAKE) -f saim.mk saim
 
 create_libs_dir:
 	@test -d $(LIB_PATH) || mkdir $(LIB_PATH)
