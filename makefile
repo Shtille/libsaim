@@ -13,6 +13,7 @@ ifeq ($(OS),Windows_NT)
 else
 	MAKE := make
 	LDFLAGS := -shared -fPIC
+	LIBRARY_PATH := $(shell pwd)/lib
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Linux)
 		#CCFLAGS += -D LINUX
@@ -35,17 +36,19 @@ export CC
 export CXX
 export AR
 export LDFLAGS
+export LIBRARY_PATH
 
 LIBRARY_DIRS = 
 ifneq ($(USE_THIRDPARTY),NO)
 LIBRARY_DIRS += thirdparty
 endif
 BINARY_DIRS = 
+ifeq ($(OS),Windows_NT)
+# TODO: add examples bin for Windows
+endif
 DIRS_ORDER = \
-	$(LIBRARY_DIRS) saim install_libs \
-	$(BINARY_DIRS) install_bins
-
-LIB_PATH = lib
+	create_libs_dir $(LIBRARY_DIRS) saim \
+	$(BINARY_DIRS)
 
 all: $(DIRS_ORDER)
 
@@ -54,16 +57,9 @@ clean:
 	@$(foreach directory, $(LIBRARY_DIRS) $(BINARY_DIRS), $(MAKE) -C $(directory) clean ;)
 	@$(MAKE) -f saim.mk clean
 
-.PHONY: install
-install: install_bins
-
-.PHONY: uninstall
-uninstall:
-	@$(foreach directory, $(BINARY_DIRS), $(MAKE) -C $(directory) uninstall ;)
-
 .PHONY: help
 help:
-	@echo available targets: all clean install uninstall
+	@echo available targets: all clean
 
 $(LIBRARY_DIRS):
 	@$(MAKE) -C $@ $@
@@ -75,14 +71,6 @@ saim:
 	@$(MAKE) -f saim.mk saim
 
 create_libs_dir:
-	@test -d $(LIB_PATH) || mkdir $(LIB_PATH)
-
-install_libs: create_libs_dir
-	@find $(LIB_PATH) -name "*$(STATIC_LIB_EXT)" -type f -delete
-	@$(foreach directory, $(LIBRARY_DIRS), find $(directory) -name "*$(STATIC_LIB_EXT)" -type f -exec cp {} $(LIB_PATH) \; ;)
-	@test -f libsaim$(STATIC_LIB_EXT) && cp libsaim$(STATIC_LIB_EXT) $(LIB_PATH)
-
-install_bins:
-	@$(foreach directory, $(BINARY_DIRS), $(MAKE) -C $(directory) install ;)
+	@test -d $(LIBRARY_PATH) || mkdir -p $(LIBRARY_PATH)
 
 .PHONY: $(DIRS_ORDER)
