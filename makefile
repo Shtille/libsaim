@@ -40,11 +40,11 @@ export LIBRARY_PATH
 
 LIBRARY_DIRS = 
 ifneq ($(USE_THIRDPARTY),NO)
-LIBRARY_DIRS += thirdparty
+	LIBRARY_DIRS += thirdparty
 endif
 BINARY_DIRS = 
 ifeq ($(OS),Windows_NT)
-# TODO: add examples bin for Windows
+	BINARY_DIRS += examples
 endif
 DIRS_ORDER = \
 	create_libs_dir $(LIBRARY_DIRS) saim \

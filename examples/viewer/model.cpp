@@ -1,6 +1,6 @@
 #include "model.h"
 
-#include "../../include/saim.h"
+#include "saim.h"
 
 Model::Model()
 : buffer_(nullptr)

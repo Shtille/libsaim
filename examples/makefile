@@ -1,0 +1,53 @@
+# Makefile for examples
+
+TARGET = examples
+ROOT_PATH = ../..
+BINARY_PATH := bin
+TARGET_PATH = ../../$(BINARY_PATH)
+
+# Platform-specific defines
+ifeq ($(OS),Windows_NT)
+	# Windows
+	LDFLAGS = -s -mwindows
+	TARGET_EXT = .exe
+else
+	LDFLAGS =
+	UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Linux)
+		# Linux
+		TARGET_EXT = .app
+	endif
+	ifeq ($(UNAME_S),Darwin)
+		# Mac OS X
+		TARGET_EXT = .app
+	endif
+endif
+
+# Exports
+export ROOT_PATH
+export TARGET_PATH
+export TARGET_EXT
+export LDFLAGS
+
+# Main routine
+SUBDIRS = \
+	viewer
+
+all: $(TARGET)
+
+create_dir:
+	@test -d $(BINARY_PATH) || mkdir $(BINARY_PATH)
+
+.PHONY: clean
+clean:
+	@$(foreach directory, $(SUBDIRS), $(MAKE) -C $(directory) clean ;)
+
+.PHONY: help
+help:
+	@echo available targets: all clean
+
+$(TARGET): create_dir $(SUBDIRS)
+
+.PHONY: $(SUBDIRS)
+$(SUBDIRS):
+	@$(MAKE) -C $@ $@
