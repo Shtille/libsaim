@@ -24,11 +24,11 @@ DEPS := $(patsubst %,$(DEPDIR)$(SL)%.d,$(basename $(SRC_FILES)))
 
 # compilers (at least gcc and clang) don't create the subdirectories automatically
 ifeq ($(OS),Windows_NT)
-	$(shell mkdir $(dir $(OBJECTS)))
-	$(shell mkdir $(dir $(DEPS)))
+$(shell mkdir $(dir $(OBJECTS)))
+$(shell mkdir $(dir $(DEPS)))
 else
-	$(shell mkdir -p $(dir $(OBJECTS)) >/dev/null)
-	$(shell mkdir -p $(dir $(DEPS)) >/dev/null)
+$(shell mkdir -p $(dir $(OBJECTS)) >/dev/null)
+$(shell mkdir -p $(dir $(DEPS)) >/dev/null)
 endif
 
 # User library dependencies
