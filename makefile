@@ -6,12 +6,15 @@ AR := ar rcs
 ifeq ($(OS),Windows_NT)
 	#CCFLAGS += -D WIN32
 	MAKE := mingw32-make.exe
+	SL = \\
 	LDFLAGS := -s -shared
+	LIBRARY_PATH := $(shell cd)\\lib
 	CC := gcc
 	CXX := g++
 	SHARED_LIB_EXT := .so
 else
 	MAKE := make
+	SL = /
 	LDFLAGS := -shared -fPIC
 	LIBRARY_PATH := $(shell pwd)/lib
 	UNAME_S := $(shell uname -s)
@@ -36,6 +39,7 @@ export CC
 export CXX
 export AR
 export LDFLAGS
+export SL
 export LIBRARY_PATH
 
 LIBRARY_DIRS = 
@@ -49,6 +53,12 @@ endif
 DIRS_ORDER = \
 	create_libs_dir $(LIBRARY_DIRS) saim \
 	$(BINARY_DIRS)
+
+ifeq ($(OS),Windows_NT)
+	CREATE_LIBS_DIR = if not exist $(LIBRARY_PATH) mkdir $(LIBRARY_PATH)
+else
+	CREATE_LIBS_DIR = test -d $(LIBRARY_PATH) || mkdir -p $(LIBRARY_PATH)
+endif
 
 all: $(DIRS_ORDER)
 
@@ -71,6 +81,6 @@ saim:
 	@$(MAKE) -f saim.mk saim
 
 create_libs_dir:
-	@test -d $(LIBRARY_PATH) || mkdir -p $(LIBRARY_PATH)
+	@$(CREATE_LIBS_DIR)
 
 .PHONY: $(DIRS_ORDER)

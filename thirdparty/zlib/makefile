@@ -3,8 +3,8 @@
 # 'TARGET' should coinside with directory name
 TARGET = zlib
 TARGET_NAME = z
-STATIC_LIB = $(LIBRARY_PATH)/lib$(TARGET_NAME)$(STATIC_LIB_EXT)
-SHARED_LIB = $(LIBRARY_PATH)/lib$(TARGET_NAME)$(SHARED_LIB_EXT)
+STATIC_LIB = $(LIBRARY_PATH)$(SL)lib$(TARGET_NAME)$(STATIC_LIB_EXT)
+SHARED_LIB = $(LIBRARY_PATH)$(SL)lib$(TARGET_NAME)$(SHARED_LIB_EXT)
 
 ifeq ($(IS_STATIC),NO)
 TARGET_TYPE = dynamic
@@ -18,7 +18,7 @@ INCLUDE = -Iinclude -Isrc
 DEFINES = 
 
 SRC_DIRS = src
-SRC_FILES = $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
+SRC_FILES = $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)$(SL)*.c))
 
 # intermediate directory for generated object files
 OBJDIR := .o
@@ -26,13 +26,18 @@ OBJDIR := .o
 DEPDIR := .d
 
 # object files, auto generated from source files
-OBJECTS := $(patsubst %,$(OBJDIR)/%.o,$(basename $(SRC_FILES)))
+OBJECTS := $(patsubst %,$(OBJDIR)$(SL)%.o,$(basename $(SRC_FILES)))
 # dependency files, auto generated from source files
-DEPS := $(patsubst %,$(DEPDIR)/%.d,$(basename $(SRC_FILES)))
+DEPS := $(patsubst %,$(DEPDIR)$(SL)%.d,$(basename $(SRC_FILES)))
 
 # compilers (at least gcc and clang) don't create the subdirectories automatically
-$(shell mkdir -p $(dir $(OBJECTS)) >/dev/null)
-$(shell mkdir -p $(dir $(DEPS)) >/dev/null)
+ifeq ($(OS),Windows_NT)
+	$(shell mkdir $(dir $(OBJECTS)))
+	$(shell mkdir $(dir $(DEPS)))
+else
+	$(shell mkdir -p $(dir $(OBJECTS)) >/dev/null)
+	$(shell mkdir -p $(dir $(DEPS)) >/dev/null)
+endif
 
 # C flags
 CFLAGS := -std=c99
@@ -47,7 +52,7 @@ CPPFLAGS += $(DEFINES)
 LDFLAGS +=
 LDLIBS = 
 # flags required for dependency generation; passed to compilers
-DEPFLAGS = -MT $@ -MD -MP -MF $(DEPDIR)/$*.Td
+DEPFLAGS = -MT $@ -MD -MP -MF $(DEPDIR)$(SL)$*.Td
 
 # compile C source files
 COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) -c -o $@
@@ -63,9 +68,9 @@ endif
 PRECOMPILE =
 # postcompile step
 ifeq ($(OS),Windows_NT)
-	POSTCOMPILE = MOVE /Y $(DEPDIR)\$*.Td $(DEPDIR)\$*.d
+	POSTCOMPILE = MOVE /Y $(DEPDIR)$(SL)$*.Td $(DEPDIR)$(SL)$*.d
 else
-	POSTCOMPILE = mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d
+	POSTCOMPILE = mv -f $(DEPDIR)$(SL)$*.Td $(DEPDIR)$(SL)$*.d
 endif
 
 ifeq ($(OS),Windows_NT)
@@ -98,14 +103,14 @@ $(TARGET_FILE): $(OBJECTS)
 	@echo linking $@
 	@$(LINK.o) $(OBJECTS)
 
-$(OBJDIR)/%.o: %.c
-$(OBJDIR)/%.o: %.c $(DEPDIR)/%.d
+$(OBJDIR)$(SL)%.o: %.c
+$(OBJDIR)$(SL)%.o: %.c $(DEPDIR)$(SL)%.d
 	@$(PRECOMPILE)
 	@echo compiling $<
 	@$(COMPILE.c) $<
 	@$(POSTCOMPILE)
 
-.PRECIOUS = $(DEPDIR)/%.d
-$(DEPDIR)/%.d: ;
+.PRECIOUS = $(DEPDIR)$(SL)%.d
+$(DEPDIR)$(SL)%.d: ;
 
 -include $(DEPS)

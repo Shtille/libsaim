@@ -1,9 +1,9 @@
 # Makefile for examples
 
 TARGET = examples
-ROOT_PATH = ../..
+ROOT_PATH = ..$(SL)..
 BINARY_PATH := bin
-TARGET_PATH = ../../$(BINARY_PATH)
+TARGET_PATH = ..$(SL)..$(SL)$(BINARY_PATH)
 
 # Platform-specific defines
 ifeq ($(OS),Windows_NT)
@@ -33,10 +33,16 @@ export LDFLAGS
 SUBDIRS = \
 	viewer
 
+ifeq ($(OS),Windows_NT)
+	CREATE_DIR = if not exist $(BINARY_PATH) mkdir $(BINARY_PATH)
+else
+	CREATE_DIR = test -d $(BINARY_PATH) || mkdir -p $(BINARY_PATH)
+endif
+
 all: $(TARGET)
 
 create_dir:
-	@test -d $(BINARY_PATH) || mkdir $(BINARY_PATH)
+	@$(CREATE_DIR)
 
 .PHONY: clean
 clean:
