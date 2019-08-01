@@ -6,7 +6,6 @@ AR := ar rcs
 ifeq ($(OS),Windows_NT)
 	#CCFLAGS += -D WIN32
 	MAKE := mingw32-make.exe
-	SL = \\
 	LDFLAGS := -s -shared
 	LIBRARY_PATH := $(shell cd)\\lib
 	CC := gcc
@@ -14,7 +13,6 @@ ifeq ($(OS),Windows_NT)
 	SHARED_LIB_EXT := .so
 else
 	MAKE := make
-	SL = /
 	LDFLAGS := -shared -fPIC
 	LIBRARY_PATH := $(shell pwd)/lib
 	UNAME_S := $(shell uname -s)
@@ -39,7 +37,6 @@ export CC
 export CXX
 export AR
 export LDFLAGS
-export SL
 export LIBRARY_PATH
 
 LIBRARY_DIRS = 
