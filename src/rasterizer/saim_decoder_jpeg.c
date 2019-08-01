@@ -277,7 +277,9 @@ bool saim_decoder_jpeg__load(const char* filename, bool inverted_row_order,
 	        rowptr[0] = dst + row_stride * row_number;
 	    }
 	    else // normal row order
+	    {
 	        rowptr[0] = dst + row_stride * cinfo.output_scanline;
+	    }
 		/* jpeg_read_scanlines expects an array of pointers to scanlines.
 		* Here the array is only one element long, but you could ask for
 		* more than one scanline at a time if that's more convenient.
@@ -504,7 +506,9 @@ bool saim_decoder_jpeg__load_from_buffer(const saim_string * data, bool inverted
 	        rowptr[0] = dst + row_stride * row_number;
 	    }
 	    else // normal row order
+	    {
 	        rowptr[0] = dst + row_stride * cinfo.output_scanline;
+	    }
 		/* jpeg_read_scanlines expects an array of pointers to scanlines.
 		* Here the array is only one element long, but you could ask for
 		* more than one scanline at a time if that's more convenient.

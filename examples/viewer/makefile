@@ -3,14 +3,14 @@
 # 'TARGET' should coinside with directory name
 TARGET = viewer
 TARGET_NAME = Viewer
-TARGET_FILE = $(TARGET_PATH)$(SL)$(TARGET_NAME)$(TARGET_EXT)
+TARGET_FILE = $(TARGET_PATH)/$(TARGET_NAME)$(TARGET_EXT)
 
 INCLUDE = \
-	-I$(ROOT_PATH)$(SL)include
+	-I$(ROOT_PATH)/include
 DEFINES = 
 
 SRC_DIRS = .
-SRC_FILES = $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)$(SL)*.cpp))
+SRC_FILES = $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.cpp))
 
 # intermediate directory for generated object files
 OBJDIR := .o
@@ -18,14 +18,14 @@ OBJDIR := .o
 DEPDIR := .d
 
 # object files, auto generated from source files
-OBJECTS := $(patsubst %,$(OBJDIR)$(SL)%.o,$(basename $(SRC_FILES)))
+OBJECTS := $(patsubst %,$(OBJDIR)/%.o,$(basename $(SRC_FILES)))
 # dependency files, auto generated from source files
-DEPS := $(patsubst %,$(DEPDIR)$(SL)%.d,$(basename $(SRC_FILES)))
+DEPS := $(patsubst %,$(DEPDIR)/%.d,$(basename $(SRC_FILES)))
 
 # compilers (at least gcc and clang) don't create the subdirectories automatically
 ifeq ($(OS),Windows_NT)
-$(shell mkdir $(dir $(OBJECTS)))
-$(shell mkdir $(dir $(DEPS)))
+$(foreach dir,$(subst /,$(SL),$(dir $(OBJECTS))),$(shell if not exist $(dir) mkdir $(dir)))
+$(foreach dir,$(subst /,$(SL),$(dir $(DEPS))),$(shell if not exist $(dir) mkdir $(dir)))
 else
 $(shell mkdir -p $(dir $(OBJECTS)) >/dev/null)
 $(shell mkdir -p $(dir $(DEPS)) >/dev/null)
@@ -33,7 +33,7 @@ endif
 
 # User library dependencies
 DEPENDENT_LIBRARIES = saim
-DEPENDENT_LIB_FILES = $(foreach name,$(DEPENDENT_LIBRARIES),$(patsubst %,$(LIBRARY_PATH)$(SL)lib%$(STATIC_LIB_EXT),$(name)))
+DEPENDENT_LIB_FILES = $(foreach name,$(DEPENDENT_LIBRARIES),$(patsubst %,$(LIBRARY_PATH)/lib%$(STATIC_LIB_EXT),$(name)))
 
 # C++ flags
 CXXFLAGS := -std=c++11
@@ -56,7 +56,7 @@ else
 	endif
 endif
 # flags required for dependency generation; passed to compilers
-DEPFLAGS = -MT $@ -MD -MP -MF $(DEPDIR)$(SL)$*.Td
+DEPFLAGS = -MT $@ -MD -MP -MF $(DEPDIR)/$*.Td
 
 # compile C++ source files
 COMPILE.cc = $(CXX) $(DEPFLAGS) $(CXXFLAGS) $(CPPFLAGS) -c -o $@
@@ -66,9 +66,9 @@ LINK.o = $(CXX) $(LDFLAGS) $(LDLIBS) -o $@
 PRECOMPILE =
 # postcompile step
 ifeq ($(OS),Windows_NT)
-	POSTCOMPILE = MOVE /Y $(DEPDIR)$(SL)$*.Td $(DEPDIR)$(SL)$*.d
+	POSTCOMPILE = MOVE /Y $(DEPDIR)$(SL)$(subst /,$(SL),$*.Td) $(DEPDIR)$(SL)$(subst /,$(SL),$*.d)
 else
-	POSTCOMPILE = mv -f $(DEPDIR)$(SL)$*.Td $(DEPDIR)$(SL)$*.d
+	POSTCOMPILE = mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d
 endif
 
 ifeq ($(OS),Windows_NT)
@@ -93,14 +93,14 @@ $(TARGET_FILE): $(OBJECTS) $(DEPENDENT_LIB_FILES)
 	@echo linking $(TARGET_NAME)$(TARGET_EXT)
 	@$(LINK.o) $(OBJECTS)
 
-$(OBJDIR)$(SL)%.o: %.cpp
-$(OBJDIR)$(SL)%.o: %.cpp $(DEPDIR)$(SL)%.d
+$(OBJDIR)/%.o: %.cpp
+$(OBJDIR)/%.o: %.cpp $(DEPDIR)/%.d
 	@$(PRECOMPILE)
 	@echo compiling $<
 	@$(COMPILE.cc) $<
 	@$(POSTCOMPILE)
 
-.PRECIOUS = $(DEPDIR)$(SL)%.d
-$(DEPDIR)$(SL)%.d: ;
+.PRECIOUS = $(DEPDIR)/%.d
+$(DEPDIR)/%.d: ;
 
 -include $(DEPS)

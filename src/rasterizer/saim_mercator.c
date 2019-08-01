@@ -29,6 +29,7 @@
 #include "../saim_provider.h"
 
 #include <math.h>
+#include <assert.h>
 
 #ifndef M_PI
 #define M_PI 3.1415926535897932384626433832795
@@ -142,6 +143,9 @@ void saim_cube_point_to_lat_lon(int face, double u, double v, double* latitude, 
 		y = y1;
 		z = -z1;
 		break;
+	default:
+		assert(!"face should be in [0;5]");
+		return;
 	}
 	// Transform sphere point to latitude and longitude
 	const double kRadToDeg = 180.0 / M_PI;

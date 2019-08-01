@@ -1,9 +1,9 @@
 # Makefile for examples
 
 TARGET = examples
-ROOT_PATH = ..$(SL)..
+ROOT_PATH = ../..
 BINARY_PATH := bin
-TARGET_PATH = ..$(SL)..$(SL)$(BINARY_PATH)
+TARGET_PATH = ../$(BINARY_PATH)
 
 # Platform-specific defines
 ifeq ($(OS),Windows_NT)

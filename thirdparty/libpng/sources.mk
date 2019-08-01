@@ -1,16 +1,16 @@
 SRC_FILES = \
-        src$(SL)png.c      \
-        src$(SL)pngerror.c \
-        src$(SL)pngget.c   \
-        src$(SL)pngmem.c   \
-        src$(SL)pngpread.c \
-        src$(SL)pngread.c  \
-        src$(SL)pngrio.c   \
-        src$(SL)pngrtran.c \
-        src$(SL)pngrutil.c \
-        src$(SL)pngset.c   \
-        src$(SL)pngtrans.c \
-        src$(SL)pngwio.c   \
-        src$(SL)pngwrite.c \
-        src$(SL)pngwtran.c \
-        src$(SL)pngwutil.c
+        src/png.c      \
+        src/pngerror.c \
+        src/pngget.c   \
+        src/pngmem.c   \
+        src/pngpread.c \
+        src/pngread.c  \
+        src/pngrio.c   \
+        src/pngrtran.c \
+        src/pngrutil.c \
+        src/pngset.c   \
+        src/pngtrans.c \
+        src/pngwio.c   \
+        src/pngwrite.c \
+        src/pngwtran.c \
+        src/pngwutil.c

@@ -1,11 +1,11 @@
 # Makefile for windows
 # This makefile has been made for compilation possibility under systems without Visual Studio 2013
 
-SAIM_BIN = ..\..\bin
+SAIM_BIN = ../../lib
 
 SRC_FILES = $(wildcard *.cpp)
 
-INCLUDE =
+INCLUDE = -I../../include
 
 CC = g++
 CFLAGS = -g -Wall -O3 -std=c++11
@@ -13,7 +13,7 @@ CFLAGS += $(INCLUDE)
 LDFLAGS = -s -mwindows
 OBJECTS = $(SRC_FILES:.cpp=.o)
 TARGET = viewer
-TARGET_PATH = ..\..\bin
+TARGET_PATH = ../bin
 EXECUTABLE = $(TARGET).exe
 
 LIBRARIES = \
