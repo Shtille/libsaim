@@ -7,14 +7,14 @@ ifeq ($(OS),Windows_NT)
 	#CCFLAGS += -D WIN32
 	MAKE := mingw32-make.exe
 	LDFLAGS := -s -shared
-	LIBRARY_PATH := $(shell cd)\\lib
+	LIBRARY_PATH ?= $(shell cd)\\lib
 	CC := gcc
 	CXX := g++
 	SHARED_LIB_EXT := .so
 else
 	MAKE := make
 	LDFLAGS := -shared -fPIC
-	LIBRARY_PATH := $(shell pwd)/lib
+	LIBRARY_PATH ?= $(shell pwd)/lib
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Linux)
 		#CCFLAGS += -D LINUX
