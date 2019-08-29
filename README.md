@@ -3,7 +3,7 @@ libsaim
 
 Downloads, stores and renders tiles from any web tiling service.
 
-![earth](http://planetmaker.wthr.us/img/earth_bluemarble_land_ocean_ice_texture_512x256.jpg)
+![earth](images/Mercator-projection.jpg)
 
 `libsaim` is a small library written in C with few dependencies. It downloads tiles via `libcurl` and places images into efficient and fast local storage (up to 2Gb). Then on any request it gets image from the storage, decompresses it via `libjpeg` or `libpng`, puts into RAM and renders into target buffer very fast.
 Really comes in handy when you're going to create some application with satellite imagery.
@@ -21,28 +21,30 @@ Building
 
 ### Windows (MinGW makefile)
 ```
-mingw32-make thirdparty
 mingw32-make
 ```
 To build via Visual Studio there is a project in `builds` directory.
 
 ### Mac OS X
 ```
-make thirdparty
 make
 ```
 To build with Xcode or other IDE you will need to include all the sources in your project and add a define `SAIM_STATICLIB` if you're building static library.
 
 ### Other Unix platform
-You should have `libcurl` installed into `/usr/local/lib` directory before calling to
+You should have `libcurl` installed before calling to
 ```
-make thirdparty
 make
 ```
-or just pass `CURL_PATH` and `CURL_LIB` to `make` command in manner described in the following section.
+
+### Options for makefile
+There are following options for `make` call:
+* `LIBRARY_PATH` - the path where all libraries were installed by owner makefile. By default `lib` directory is being created.
+* `USE_THIRDPARTY` - the flag that tells makefile to build inner thirdparty libraries or not. By default it uses inner libraries.
 
 Dependencies
 -------------------
+
 `libsaim` depends on following libraries:
 * libcurl
 * libjpeg
@@ -51,21 +53,16 @@ Dependencies
 
 All the libraries are included to `thirdparty` folder. But `libcurl` is excluded from build on all platforms but Windows.
 Mac OS X provides libcurl with command line tools. So you dont even care about that on these two platforms.
-For building on Linux or any other platform you should define path to your `libcurl` in environment variables or pass to `make` command indirectly:
+For building on Linux or any other platform you should define path to your `libcurl` in environment variables.
+If you already have mentioned above thirdparty libraries in your lib directory then just two additional parameters for parent makefile:
 ```
-make CURL_PATH=<path to curl library directory> CURL_LIB=<path to curl static/dynamic library>
+make -C saim saim LIBRARY_PATH=~/dev/app/lib USE_THIRDPARTY=NO
 ```
-All the dependencies are configurable, so i'll count them all:
-* CURL_PATH
-* CURL_LIB
-* JPEG_PATH
-* JPEG_LIB
-* PNG_PATH
-* PNG_LIB
-* Z_PATH
-* Z_LIB
-
-Also you may specify other installation directory via passing `INSTALL_PATH` to `make` command.
+or when you're already using `LIBRARY_PATH` variable in makefile(s):
+```
+make -C saim saim USE_THIRDPARTY=NO
+```
+So target file is being installed into `LIBRARY_PATH` or into local `lib` directory when option hasn't been passed.
 
 Examples
 --------
@@ -77,6 +74,7 @@ It provides few functions:
 * `saim_set_target` - setups target buffer sizes and bitness
 * `saim_render_aligned` - renders rectangle with all sides parallel to geodetic axis
 * `saim_render_common` - renders rectangle that is rotated clock wise
+* `saim_render_mapped_cube` - renders rectangle for cube face that is being projected onto sphere
 
 Also there's a working example in `/src/tests/app_c` directory.
 
