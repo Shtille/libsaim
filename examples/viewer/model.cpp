@@ -16,7 +16,7 @@ Model::~Model()
 }
 bool Model::Initialize()
 {
-	return saim_init("", nullptr, 0) == 0;
+	return saim_init("", nullptr, 0, 1) == 0;
 }
 void Model::Deinitialize()
 {

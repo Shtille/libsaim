@@ -2,7 +2,7 @@
 #
 # Possible options:
 # - USE_THIRDPARTY=NO to provide your own libraries (zlib, jpeg, png, curl)
-# - SAIM_THREAD_COUNT=2 or any desired value to provide saim multithreading
+# - SAIM_MAX_TILE_SERVICE_COUNT=8 to set max service count for saim (dafault value is 4)
 # 
 
 # Platform-specific defines

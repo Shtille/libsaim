@@ -33,7 +33,7 @@
 
 #include <stdbool.h>
 
-bool saim_manager__initialize_cache(const char* hash_string);
+bool saim_manager__initialize_cache(const char* hash_string, int service_count);
 void saim_manager__deinitialize_cache();
 
 bool saim_manager__set_provider(saim_provider_info * provider_info, int flags);

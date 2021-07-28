@@ -31,18 +31,19 @@
 #include "saim_tile_service.h"
 #include "saim_region_service.h"
 
-typedef struct {
-#if defined(SAIM_TILE_SERVICE_COUNT) && SAIM_TILE_SERVICE_COUNT > 1
-	saim_tile_service tile_services[SAIM_TILE_SERVICE_COUNT];
-	int tile_service_counter;
-#else
-	saim_tile_service tile_service;
+#ifndef SAIM_MAX_TILE_SERVICE_COUNT
+#define SAIM_MAX_TILE_SERVICE_COUNT 4
 #endif
+
+typedef struct {
+	saim_tile_service tile_services[SAIM_MAX_TILE_SERVICE_COUNT];
+	int tile_service_count;
+	int tile_service_counter;
 	saim_region_service region_service;
 	saim_storage storage;
 } saim_cache;
 
-bool saim_cache__create(saim_cache * cache, const char* hash_string);
+bool saim_cache__create(saim_cache * cache, const char* hash_string, int service_count);
 void saim_cache__destroy(saim_cache * cache);
 
 bool saim_cache__initialize(saim_cache * cache);

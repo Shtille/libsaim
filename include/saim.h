@@ -65,9 +65,11 @@ extern "C" {
  *  @param[in] path          A path there tiles storage is located.
  *  @param[in] provider_info Pointer to provider info that discribes tiles services parameters.
  *  @param[in] flags         Some flags that discribe which parameters from provider info is to use.
+ *  @param[in] service_count Number of services for images loading. Use 1 for default.
+ *                           Zero and negative values are threated as 1.
  *  @return                  returns 0 on success and not 0 in case of error
 */
-int saim_init(const char* path, saim_provider_info * provider_info, int flags);
+int saim_init(const char* path, saim_provider_info * provider_info, int flags, int service_count);
 
 /*! @brief Library cleanup function.
 */

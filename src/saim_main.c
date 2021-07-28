@@ -38,7 +38,7 @@ char s_path[260];
 
 extern saim_rasterizer * s_rasterizer;
 
-int saim_init(const char* path, saim_provider_info * provider_info, int flags)
+int saim_init(const char* path, saim_provider_info * provider_info, int flags, int service_count)
 {
 	size_t length;
 	char* hash_string;
@@ -68,7 +68,7 @@ int saim_init(const char* path, saim_provider_info * provider_info, int flags)
 		hash_string = provider_info->string;
 	else
 		hash_string = "default"; // it's normal to pass temporary object!
-	if (!saim_manager__initialize_cache(hash_string))
+	if (!saim_manager__initialize_cache(hash_string, service_count))
 	{
 		fprintf(stderr, "cache initialization failed\n");
 		return 2;

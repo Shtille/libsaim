@@ -19,7 +19,7 @@ int main()
 	saim_bitmap bitmap;
 
     // Initialize libsaim
-    result = saim_init("", info, flags);
+    result = saim_init("", info, flags, 1);
 
     // Provide information about target surface
     width = 640;

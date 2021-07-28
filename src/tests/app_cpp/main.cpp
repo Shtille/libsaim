@@ -15,7 +15,7 @@ int main()
     double upper_latitude, left_longitude, lower_latitude, right_longitude;
 
     // Initialize libsaim
-    result = saim_init("", info, flags);
+    result = saim_init("", info, flags, 1);
 
     // Provide information about target surface
     width = 640;

@@ -38,7 +38,7 @@ saim_cache * s_cache = NULL;
 saim_provider * s_provider = NULL;
 saim_rasterizer * s_rasterizer = NULL;
 
-bool saim_manager__initialize_cache(const char* hash_string)
+bool saim_manager__initialize_cache(const char* hash_string, int service_count)
 {
 	if (!saim_memory_init())
 		return false;
@@ -52,7 +52,7 @@ bool saim_manager__initialize_cache(const char* hash_string)
 		return false;
 
 	s_cache = (saim_cache *) SAIM_MALLOC(sizeof(saim_cache));
-	if (!saim_cache__create(s_cache, hash_string))
+	if (!saim_cache__create(s_cache, hash_string, service_count))
 		return false;
 	if (!saim_cache__initialize(s_cache))
 		return false;
