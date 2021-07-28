@@ -32,7 +32,12 @@
 #include "saim_region_service.h"
 
 typedef struct {
+#if defined(SAIM_TILE_SERVICE_COUNT) && SAIM_TILE_SERVICE_COUNT > 1
+	saim_tile_service tile_services[SAIM_TILE_SERVICE_COUNT];
+	int tile_service_counter;
+#else
 	saim_tile_service tile_service;
+#endif
 	saim_region_service region_service;
 	saim_storage storage;
 } saim_cache;

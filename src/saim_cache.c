@@ -30,9 +30,20 @@
 
 bool saim_cache__create(saim_cache * cache, const char* hash_string)
 {
+#if defined(SAIM_TILE_SERVICE_COUNT) && SAIM_TILE_SERVICE_COUNT > 1
+	int i;
+	for (i = 0; i < SAIM_TILE_SERVICE_COUNT; ++i)
+	{
+		if (!saim_tile_service__create(&cache->tile_services[i]))
+			return false;
+		saim_tile_service__run_service(&cache->tile_services[i]);
+	}
+	cache->tile_service_counter = 0;
+#else
 	if (!saim_tile_service__create(&cache->tile_service))
 		return false;
 	saim_tile_service__run_service(&cache->tile_service);
+#endif
 
 	if (!saim_storage__create(&cache->storage, hash_string))
 		return false;
@@ -41,8 +52,17 @@ bool saim_cache__create(saim_cache * cache, const char* hash_string)
 }
 void saim_cache__destroy(saim_cache * cache)
 {
+#if defined(SAIM_TILE_SERVICE_COUNT) && SAIM_TILE_SERVICE_COUNT > 1
+	int i;
+	for (i = 0; i < SAIM_TILE_SERVICE_COUNT; ++i)
+	{
+		saim_tile_service__stop_service(&cache->tile_services[i]);
+		saim_tile_service__destroy(&cache->tile_services[i]);
+	}
+#else
 	saim_tile_service__stop_service(&cache->tile_service);
 	saim_tile_service__destroy(&cache->tile_service);
+#endif
 
 	saim_storage__destroy(&cache->storage);
 }
@@ -57,9 +77,21 @@ bool saim_cache__is_exist(saim_cache * cache, const saim_data_key * key)
 void saim_cache__tile_service_load_query(saim_cache * cache, const saim_data_key * key, saim_tile_notification_function function)
 {
 	saim_tile_service_task * task;
+#if defined(SAIM_TILE_SERVICE_COUNT) && SAIM_TILE_SERVICE_COUNT > 1
+	int index;
+#endif
 	task = (saim_tile_service_task *)SAIM_MALLOC(sizeof(saim_tile_service_task));
+#if defined(SAIM_TILE_SERVICE_COUNT) && SAIM_TILE_SERVICE_COUNT > 1
+	// Multiple services
+	index = cache->tile_service_counter % SAIM_TILE_SERVICE_COUNT;
+	++cache->tile_service_counter;
+	saim_tile_service_task__create(task, &cache->storage, &cache->tile_services[index].curl_wrapper, function, key);
+	saim_tile_service__add_task(&cache->tile_services[index], task);
+#else
+	// Single service
 	saim_tile_service_task__create(task, &cache->storage, &cache->tile_service.curl_wrapper, function, key);
 	saim_tile_service__add_task(&cache->tile_service, task);
+#endif
 }
 void saim_cache__region_service_load_query(saim_cache * cache, const saim_data_key * key, const saim_string* name, saim_region_notification_function function)
 {

@@ -32,7 +32,7 @@
 #include <stdlib.h>
 
 #ifndef SAIM_VERSION
-#define SAIM_VERSION 103
+#define SAIM_VERSION 104
 #endif
 
 #ifdef _WIN32

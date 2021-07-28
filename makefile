@@ -1,4 +1,9 @@
 # Makefile for libsaim
+#
+# Possible options:
+# - USE_THIRDPARTY=NO to provide your own libraries (zlib, jpeg, png, curl)
+# - SAIM_THREAD_COUNT=2 or any desired value to provide saim multithreading
+# 
 
 # Platform-specific defines
 STATIC_LIB_EXT := .a
