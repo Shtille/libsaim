@@ -1,10 +1,11 @@
 libsaim
 ======
 
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FShtille%2Flibsaim.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FShtille%2Flibsaim?ref=badge_shield)
+
 Downloads, stores and renders tiles from any web tiling service.
 
 ![earth](images/Mercator-projection.jpg)
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FShtille%2Flibsaim.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FShtille%2Flibsaim?ref=badge_shield)
 
 `libsaim` is a small library written in C with few dependencies. It downloads tiles via `libcurl` and places images into efficient and fast local storage (up to 2Gb). Then on any request it gets image from the storage, decompresses it via `libjpeg` or `libpng`, puts into RAM and renders into target buffer very fast.
 Really comes in handy when you're going to create some application with satellite imagery.
@@ -95,10 +96,8 @@ create an issue or do a pull request :smile:.
 License
 -------
 
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FShtille%2Flibsaim.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FShtille%2Flibsaim?ref=badge_large)
+
 [zlib/libpng](https://opensource.org/licenses/zlib-license.php)
 
-Copyright (c) 2016 Sviridov Vladimir
-
-
-## License
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FShtille%2Flibsaim.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FShtille%2Flibsaim?ref=badge_large)
+Copyright (c) 2016-2021 Sviridov Vladimir
