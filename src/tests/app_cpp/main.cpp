@@ -13,16 +13,19 @@ int main()
     int width, height, bytes_per_pixel;
     int num_tiles_left;
     double upper_latitude, left_longitude, lower_latitude, right_longitude;
+    struct saim_instance * instance;
 
     // Initialize libsaim
-    result = saim_init("", info, flags, 1);
+    instance = saim_init("", info, flags, 1, &result);
+    if (result != 0)
+        return result;
 
     // Provide information about target surface
     width = 640;
     height = 480;
     bytes_per_pixel = 3;
     buffer = (unsigned char *) malloc(width * height * bytes_per_pixel);
-    saim_set_target(buffer, width, height, bytes_per_pixel);
+    saim_set_target(instance, buffer, width, height, bytes_per_pixel);
 
     // Now we are able to render
     upper_latitude = 34.890285;
@@ -32,7 +35,7 @@ int main()
 
     do
     {
-        num_tiles_left = saim_render_aligned(upper_latitude, left_longitude, lower_latitude, right_longitude);
+        num_tiles_left = saim_render_aligned(instance, upper_latitude, left_longitude, lower_latitude, right_longitude);
         std::this_thread::yield();
     }
     while (num_tiles_left > 0);
@@ -43,7 +46,7 @@ int main()
     free(buffer);
 
     // Cleanup libsaim
-    saim_cleanup();
+    saim_cleanup(instance);
 
     return 0;
 }

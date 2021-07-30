@@ -30,10 +30,11 @@
 //! Define hash type for key struct
 typedef unsigned long long key_hash_t;
 
+typedef struct saim_data_key saim_data_key;
 //! Data key struct
-typedef struct {
+struct saim_data_key {
     key_hash_t hash;
-} saim_data_key;
+};
 
 void saim_data_key__create(saim_data_key * key, int x, int y, int z);
 void saim_data_key__destroy(saim_data_key * key);

@@ -36,7 +36,9 @@
 
 #include <stdbool.h>
 
-typedef struct {
+typedef struct saim_provider saim_provider;
+
+struct saim_provider {
 	mtx_t mutex;
 	double min_latitude;
 	double max_latitude;
@@ -53,7 +55,7 @@ typedef struct {
 	int * first_argument;
 	int * second_argument;
 	int * third_argument;
-} saim_provider;
+};
 
 bool saim_provider__create(saim_provider * provider);
 void saim_provider__destroy(saim_provider * provider);

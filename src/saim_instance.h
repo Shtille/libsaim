@@ -24,26 +24,35 @@
 * 
 **************************************************************************/
 
-#ifndef __SAIM_MANAGER_H__
-#define __SAIM_MANAGER_H__
-
-#include "saim_data_key.h"
-#include "saim_cache.h"
-#include "saim_provider_info.h"
+#ifndef __SAIM_INSTANCE_H__
+#define __SAIM_INSTANCE_H__
 
 #include <stdbool.h>
 
-bool saim_manager__initialize_cache(const char* hash_string, int service_count);
-void saim_manager__deinitialize_cache();
+typedef struct saim_instance saim_instance;
+/**
+ * Structure holds instance-specific data
+ */
+struct saim_instance {
+	struct saim_provider * provider;			//!< pointer to provider instance
+	struct saim_cache * cache;					//!< pointer to cache instance
+	struct saim_rasterizer * rasterizer;		//!< pointer to rasterizer instance
+	char path[260];								//!< working path
+	bool viewport_clipping_enabled;				//!< is viewport clipping enabled
+};
 
-bool saim_manager__set_provider(saim_provider_info * provider_info, int flags);
+bool saim_instance__create(saim_instance * instance);
+void saim_instance__destroy(saim_instance * instance);
 
-saim_cache * saim_manager__get_cache();
+bool saim_instance__initialize(saim_instance * instance, const char* hash_string, int service_count);
+void saim_instance__deinitialize(saim_instance * instance);
 
-void saim_manager__enable_viewport_clipping();
-void saim_manager__disable_viewport_clipping();
-bool saim_manager__is_viewport_clipping_enabled();
+bool saim_instance__set_provider(saim_instance * instance, struct saim_provider_info * provider_info, int flags);
 
-bool saim_manager__is_in_viewport(const saim_data_key * key);
+void saim_instance__enable_viewport_clipping(saim_instance * instance);
+void saim_instance__disable_viewport_clipping(saim_instance * instance);
+bool saim_instance__is_viewport_clipping_enabled(saim_instance * instance);
+
+bool saim_instance__is_in_viewport(saim_instance * instance, const struct saim_data_key * key);
 
 #endif

@@ -28,7 +28,7 @@
 
 #include "util/saim_memory.h"
 
-bool saim_cache__create(saim_cache * cache, const char* hash_string, int service_count)
+bool saim_cache__create(saim_cache * cache, const char* hash_string, int service_count, struct saim_instance * instance)
 {
 	int i;
 	cache->tile_service_counter = 0;
@@ -42,7 +42,7 @@ bool saim_cache__create(saim_cache * cache, const char* hash_string, int service
 		saim_tile_service__run_service(&cache->tile_services[i]);
 	}
 
-	if (!saim_storage__create(&cache->storage, hash_string))
+	if (!saim_storage__create(&cache->storage, hash_string, instance))
 		return false;
 
 	return true;

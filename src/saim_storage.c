@@ -26,6 +26,7 @@
 
 #include "saim_storage.h"
 
+#include "saim_instance.h"
 #include "util/saim_memory.h"
 #include "util/saim_file_op.h"
 
@@ -34,20 +35,19 @@
 static const file_offset_t kMaxMainFileSize = 300 << 20; // 300 MB
 static const file_offset_t kMaxRegionFileSize = 500 << 20; // 500 MB
 
-extern char s_path[260]; // declared in saim_init.c
-
-static void append_path(char * buffer, const char* filename)
+static void append_path(char * buffer, const char* filename, const char* path)
 {
 	size_t path_length, filename_length;
-	path_length = strlen(s_path);
+	path_length = strlen(path);
 	filename_length = strlen(filename);
-	strncpy(buffer, s_path, path_length);
+	strncpy(buffer, path, path_length);
 	strncpy(buffer + path_length, filename, filename_length);
 	buffer[path_length + filename_length] = '\0';
 }
 
-bool saim_storage__create(saim_storage * storage, const char* hash_string)
+bool saim_storage__create(saim_storage * storage, const char* hash_string, struct saim_instance * instance)
 {
+	storage->instance = instance;
 	if (mtx_init(&storage->critical_section, mtx_plain) == thrd_error)
 	{
 		fprintf(stderr, "saim: mutex init failed\n");
@@ -81,9 +81,9 @@ bool saim_storage__initialize(saim_storage * storage)
 	saim_storage_info_pair * info_pair;
 	initialize_result_t result;
 
-	append_path(buffer, "regions.omrh");
+	append_path(buffer, "regions.omrh", storage->instance->path);
 	saim_regions_header_file__create(&storage->regions_header_file, buffer);
-	append_path(buffer, "data.om");
+	append_path(buffer, "data.om", storage->instance->path);
 	saim_storage_info__create(&storage->main_info);
 	saim_storage_file__create(&storage->main_info.file, buffer, storage->hash_value, kMaxMainFileSize);
 	if (saim_storage__initialize_file(storage, &storage->main_info) == kStorage_Failed)
@@ -631,7 +631,7 @@ void saim_storage__generate_region_file_name(saim_storage * storage, char* buffe
 
 	id = storage->regions_header_file.unique_id;
 	sprintf(filename, "%u.omr", id);
-	append_path(buffer, filename);
+	append_path(buffer, filename, storage->instance->path);
 }
 bool saim_storage__save(saim_storage * storage, const saim_data_key * key, const saim_string * data, saim_storage_info * info)
 {

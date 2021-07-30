@@ -26,7 +26,7 @@
 
 #include "saim.h"
 
-#include "saim_manager.h"
+#include "saim_instance.h"
 #include "rasterizer/saim_rasterizer.h"
 #include "util/saim_memory.h"
 
@@ -34,70 +34,93 @@
 #include <stdio.h>
 #include <assert.h>
 
-char s_path[260];
-
-extern saim_rasterizer * s_rasterizer;
-
-int saim_init(const char* path, saim_provider_info * provider_info, int flags, int service_count)
+saim_instance * saim_init(const char* path, saim_provider_info * provider_info, 
+    int flags, int service_count, int * error)
 {
 	size_t length;
 	char* hash_string;
+	saim_instance * instance;
+
+	instance = (saim_instance *) SAIM_MALLOC(sizeof(saim_instance));
+	if (!saim_instance__create(instance))
+	{
+		fprintf(stderr, "instance creation failed\n");
+		if (error) *error = 9;
+		SAIM_FREE(instance);
+		return NULL;
+	}
+
 	// Append path delimeter here
 	length = strlen(path);
 	if (length > 259)
 	{
 		fprintf(stderr, "path parameter is too long\n");
-		return 1;
+		if (error) *error = 1;
+		saim_instance__destroy(instance);
+		SAIM_FREE(instance);
+		return NULL;
 	}
-	strncpy(s_path, path, length);
+	strncpy(instance->path, path, length);
 	if (length > 0)
 	{
 		if (path[length-1] != '/')
 		{
-			s_path[length] = '/';
-			s_path[length+1] = '\0';
+			instance->path[length] = '/';
+			instance->path[length+1] = '\0';
 		}
 		else
-			s_path[length] = '\0';
+			instance->path[length] = '\0';
 	}
 	else
-		s_path[length] = '\0';
+		instance->path[length] = '\0';
 
 	// Initialize cache
 	if (provider_info != NULL)
 		hash_string = provider_info->string;
 	else
 		hash_string = "default"; // it's normal to pass temporary object!
-	if (!saim_manager__initialize_cache(hash_string, service_count))
+	if (!saim_instance__initialize(instance, hash_string, service_count))
 	{
 		fprintf(stderr, "cache initialization failed\n");
-		return 2;
+		if (error) *error = 2;
+		saim_instance__deinitialize(instance);
+		saim_instance__destroy(instance);
+		SAIM_FREE(instance);
+		return NULL;
 	}
 
 	// Set provider parameters
-	if (!saim_manager__set_provider(provider_info, flags))
+	if (!saim_instance__set_provider(instance, provider_info, flags))
 	{
 		fprintf(stderr, "provider setup failed\n");
-		return 3;
+		if (error) *error = 3;
+		saim_instance__deinitialize(instance);
+		saim_instance__destroy(instance);
+		SAIM_FREE(instance);
+		return NULL;
 	}
 
-	return 0;
+	if (error) *error = 0;
+	return instance;
 }
-void saim_cleanup()
+void saim_cleanup(saim_instance * instance)
 {
-	// Deinitialize cache
-	saim_manager__deinitialize_cache();
+	// Deinitialize instance
+	saim_instance__deinitialize(instance);
+	saim_instance__destroy(instance);
+	SAIM_FREE(instance);
 }
-void saim_set_target(unsigned char * buffer, int width, int height, int bytes_per_pixel)
+void saim_set_target(saim_instance * instance, 
+	unsigned char * buffer, int width, int height, int bytes_per_pixel)
 {
-	s_rasterizer->target_buffer = buffer;
-	s_rasterizer->target_width = width;
-	s_rasterizer->target_height = height;
-	s_rasterizer->target_bpp = bytes_per_pixel;
+	instance->rasterizer->target_buffer = buffer;
+	instance->rasterizer->target_width = width;
+	instance->rasterizer->target_height = height;
+	instance->rasterizer->target_bpp = bytes_per_pixel;
 }
-void saim_set_bitmap_cache_size(unsigned int size)
+void saim_set_bitmap_cache_size(saim_instance * instance, unsigned int size)
 {
-	s_rasterizer->max_bitmap_cache_size = size;
+	instance->rasterizer->max_bitmap_cache_size = size;
 }
 void saim_set_memory_functions(
 	void* (*user_malloc)(size_t /*size*/),
@@ -118,18 +141,18 @@ void saim_set_memory_functions(
 	assert(!"You should define SAIM_USING_USER_MEMORY_FUNCTIONS to use this function");
 #endif
 }
-int saim_render_aligned(double upper_latitude, double left_longitude, double lower_latitude, double right_longitude)
+int saim_render_aligned(saim_instance * instance, double upper_latitude, double left_longitude, double lower_latitude, double right_longitude)
 {
-	return saim_rasterizer__render_aligned(s_rasterizer,
+	return saim_rasterizer__render_aligned(instance->rasterizer,
 		upper_latitude, left_longitude, lower_latitude, right_longitude);
 }
-int saim_render_common(double upper_latitude, double left_longitude, double lower_latitude, double right_longitude, float angle)
+int saim_render_common(saim_instance * instance, double upper_latitude, double left_longitude, double lower_latitude, double right_longitude, float angle)
 {
-	return saim_rasterizer__render_common(s_rasterizer,
+	return saim_rasterizer__render_common(instance->rasterizer,
 		upper_latitude, left_longitude, lower_latitude, right_longitude, angle);
 }
-int saim_render_mapped_cube(int face, int lod, int x, int y)
+int saim_render_mapped_cube(saim_instance * instance, int face, int lod, int x, int y)
 {
-	return saim_rasterizer__render_mapped_cube(s_rasterizer,
+	return saim_rasterizer__render_mapped_cube(instance->rasterizer,
 		face, lod, x, y);
 }

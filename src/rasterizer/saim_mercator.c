@@ -35,8 +35,6 @@
 #define M_PI 3.1415926535897932384626433832795
 #endif
 
-extern saim_provider * s_provider;
-
 static int clip_int(int value, int min_value, int max_value)
 {
 	return (value < min_value) ? min_value : (value > max_value) ? max_value : value;
@@ -54,51 +52,51 @@ double saim_normalized_longitude(double longitude)
 		clipped_longitude -= 360.0;
 	return clipped_longitude;
 }
-int saim_map_size(int level_of_detail)
+int saim_map_size(saim_provider * provider, int level_of_detail)
 {
-	return s_provider->bitmap_width << level_of_detail;
+	return provider->bitmap_width << level_of_detail;
 }
-void saim_lat_long_to_pixel_xy(double latitude, double longitude, int level_of_detail, 
+void saim_lat_long_to_pixel_xy(saim_provider * provider, double latitude, double longitude, int level_of_detail, 
 	int* pixel_x, int* pixel_y)
 {
-	latitude = clip_double(latitude, s_provider->min_latitude, s_provider->max_latitude);
-	longitude = clip_double(longitude, s_provider->min_longitude, s_provider->max_longitude);
+	latitude = clip_double(latitude, provider->min_latitude, provider->max_latitude);
+	longitude = clip_double(longitude, provider->min_longitude, provider->max_longitude);
 
 	double x = (longitude + 180.0) / 360.0;
 	double sin_latitude = sin(latitude * M_PI / 180.0);
 	double y = 0.5 - log((1.0 + sin_latitude) / (1.0 - sin_latitude)) / (4.0 * M_PI);
 
-	int map_size = saim_map_size(level_of_detail);
+	int map_size = saim_map_size(provider, level_of_detail);
 	*pixel_x = clip_int((int)(x * (double)map_size + 0.5), 0, map_size - 1);
 	*pixel_y = clip_int((int)(y * (double)map_size + 0.5), 0, map_size - 1);
 }
-void saim_longitude_to_pixel_x(double longitude, int map_size, int* pixel_x)
+void saim_longitude_to_pixel_x(saim_provider * provider, double longitude, int map_size, int* pixel_x)
 {
-	longitude = clip_double(longitude, s_provider->min_longitude, s_provider->max_longitude);
+	longitude = clip_double(longitude, provider->min_longitude, provider->max_longitude);
 	double x = (longitude + 180.0) / 360.0;
 	*pixel_x = clip_int((int)(x * (double)map_size + 0.5), 0, map_size - 1);
 }
-void saim_latitude_to_pixel_y(double latitude, int map_size, int* pixel_y)
+void saim_latitude_to_pixel_y(saim_provider * provider, double latitude, int map_size, int* pixel_y)
 {
-	latitude = clip_double(latitude, s_provider->min_latitude, s_provider->max_latitude);
+	latitude = clip_double(latitude, provider->min_latitude, provider->max_latitude);
 	const double kOneOverFourPi = 1.0  / (4.0 * M_PI);
 	double sin_latitude = sin(latitude * M_PI / 180.0);
 	double y = 0.5 - log((1.0 + sin_latitude) / (1.0 - sin_latitude)) * kOneOverFourPi;
 	*pixel_y = clip_int((int)(y * (double)map_size + 0.5), 0, map_size - 1);
 }
-void saim_lat_long_to_tile_xy(double latitude, double longitude, int level_of_detail, 
+void saim_lat_long_to_tile_xy(saim_provider * provider, double latitude, double longitude, int level_of_detail, 
 	int* tile_x, int* tile_y)
 {
-	saim_lat_long_to_pixel_xy(latitude, longitude, level_of_detail, tile_x, tile_y);
-	*tile_x /= s_provider->bitmap_width;
-	*tile_y /= s_provider->bitmap_height;
+	saim_lat_long_to_pixel_xy(provider, latitude, longitude, level_of_detail, tile_x, tile_y);
+	*tile_x /= provider->bitmap_width;
+	*tile_y /= provider->bitmap_height;
 }
-int saim_get_optimal_level_of_detail(double screen_pixel_size_x)
+int saim_get_optimal_level_of_detail(saim_provider * provider, double screen_pixel_size_x)
 {
 	const double kInvLog2 = 1.442695040888963; // 1/ln(2)
 	// To not do ceil we just use +1
-	return clip_int((int)(log((360.0/(double)s_provider->bitmap_width)/screen_pixel_size_x) * kInvLog2) + 1,
-		s_provider->min_lod, s_provider->max_lod);
+	return clip_int((int)(log((360.0/(double)provider->bitmap_width)/screen_pixel_size_x) * kInvLog2) + 1,
+		provider->min_lod, provider->max_lod);
 }
 void saim_cube_point_to_lat_lon(int face, double u, double v, double* latitude, double* longitude)
 {

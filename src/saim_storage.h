@@ -45,6 +45,7 @@ typedef enum {
 typedef struct saim_storage saim_storage;
 
 struct saim_storage {
+	struct saim_instance * instance;          		//!< pointer to library instance
 	unsigned int hash_value;						//!< stored hash value for selected provider
 	mtx_t critical_section;							//!< critical section handle
 	mtx_t critical_section_key_set;					//!< critical section handle for key set
@@ -57,7 +58,7 @@ struct saim_storage {
 
 /* =========== External functions =========== */
 
-bool saim_storage__create(saim_storage * storage, const char* hash_string);
+bool saim_storage__create(saim_storage * storage, const char* hash_string, struct saim_instance * instance);
 void saim_storage__destroy(saim_storage * storage);
 
 //! Storage initialization

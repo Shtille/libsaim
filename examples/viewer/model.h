@@ -23,6 +23,7 @@ protected:
 	int Render(double upper_latitude, double left_longitude, double lower_latitude, double right_longitude);
 
 private:
+	struct saim_instance * instance_;
 	unsigned char * buffer_;
 	int width_;
 	int height_;

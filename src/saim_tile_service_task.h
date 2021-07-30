@@ -33,7 +33,7 @@
 
 #include <stdbool.h>
 
-typedef void (*saim_tile_notification_function)(const saim_data_key * key, saim_string * data, bool success);
+typedef void (*saim_tile_notification_function)(struct saim_instance * instance, const saim_data_key * key, saim_string * data, bool success);
 
 typedef struct saim_tile_service_task saim_tile_service_task;
 

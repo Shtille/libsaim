@@ -37,7 +37,11 @@
 
 #include <stdbool.h>
 
-typedef struct {
+typedef struct saim_rasterizer saim_rasterizer;
+
+struct saim_rasterizer {
+	struct saim_instance * instance;    //!< pointer to library instance
+
 	unsigned char* target_buffer;
 	int target_width;
 	int target_height;
@@ -60,9 +64,9 @@ typedef struct {
 	int sort_shift_counter;             //!< counter to not do sort every frame
 	saim_bitmap_cache_info_list bitmap_cache;
 	unsigned int max_bitmap_cache_size; //!< maximum bitmap cache size
-} saim_rasterizer;
+};
 
-bool saim_rasterizer__create(saim_rasterizer * rasterizer);
+bool saim_rasterizer__create(saim_rasterizer * rasterizer, struct saim_instance * instance);
 void saim_rasterizer__destroy(saim_rasterizer * rasterizer);
 
 int saim_rasterizer__render_aligned(saim_rasterizer * rasterizer,

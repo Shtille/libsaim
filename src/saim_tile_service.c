@@ -27,7 +27,8 @@
 #include "saim_tile_service.h"
 
 #include "util/saim_memory.h"
-#include "saim_manager.h"
+#include "saim_instance.h"
+#include "saim_storage.h"
 
 #include <stdio.h>
 
@@ -74,7 +75,7 @@ static int thread_func(void * arg)
 		}
 
 		// Check if our key in viewport
-		if (!saim_manager__is_in_viewport(&task->key))
+		if (!saim_instance__is_in_viewport(task->storage->instance, &task->key))
 		{
 			// We don't need this task anymore
 			saim_tile_service_task__notify(task, false);

@@ -27,61 +27,75 @@
 #ifndef __SAIM_MERCATOR_H__
 #define __SAIM_MERCATOR_H__
 
-//! Transforms input longitude to [-180; +180] range
-// @param[in] longitude Longitude of the point, in degrees.
-// @return Normalized longitude.
+/// Transforms input longitude to [-180; +180] range
+///
+/// @param[in] longitude      		Longitude of the point, in degrees.
+/// @return                   		Normalized longitude.
 double saim_normalized_longitude(double longitude);
 
-//! Determines the map width and height (in pixels) at a specified level of detail
-// @param[in] level_of_detail Level of detail, from 0 (lowest detail) to 15 (highest detail)
-// @return The map width and height in pixels.
-int saim_map_size(int level_of_detail);
+/// Determines the map width and height (in pixels) at a specified level of detail
+///
+/// @param[in] provider 			The provider instance.
+/// @param[in] level_of_detail    	Level of detail, from 0 (lowest detail) to 15 (highest detail)
+/// @return                       	The map width and height in pixels.
+int saim_map_size(struct saim_provider * provider, int level_of_detail);
 
-//! Converts a point from latitude/longitude WGS-84 coordinates (in degrees)
-// into pixel XY at a specified level of detail.
-// @param[in] latitude Latitude of the point, in degrees.
-// @param[in] longitude Longitude of the point, in degrees.
-// @param[in] level_of_detail Level of detail, from 0 (lowest detail) to 15 (highest detail)
-// @param[out] pixel_x Output parameter receiving the X coordinate of pixel.
-// @param[out] pixel_y Output parameter receiving the Y coordinate of pixel.
-void saim_lat_long_to_pixel_xy(double latitude, double longitude, int level_of_detail, 
+/// Converts a point from latitude/longitude WGS-84 coordinates (in degrees)
+/// into pixel XY at a specified level of detail.
+///
+/// @param[in] provider 			The provider instance.
+/// @param[in] latitude 			Latitude of the point, in degrees.
+/// @param[in] longitude           	Longitude of the point, in degrees.
+/// @param[in] level_of_detail     	Level of detail, from 0 (lowest detail) to 15 (highest detail)
+/// @param[out] pixel_x            	Output parameter receiving the X coordinate of pixel.
+/// @param[out] pixel_y 			Output parameter receiving the Y coordinate of pixel.
+void saim_lat_long_to_pixel_xy(struct saim_provider * provider, double latitude, double longitude, int level_of_detail,
 	int* pixel_x, int* pixel_y);
 
-//! Converts a point longitude WGS-84 coordinates (in degrees)
-// into pixel X at a specified level of detail.
-// @param[in] longitude Longitude of the point, in degrees.
-// @param[in] map_size The map width and height in pixels.
-// @param[out] pixel_x Output parameter receiving the X coordinate of pixel.
-void saim_longitude_to_pixel_x(double longitude, int map_size, int* pixel_x);
+/// Converts a point longitude WGS-84 coordinates (in degrees)
+/// into pixel X at a specified level of detail.
+///
+/// @param[in] provider 			The provider instance.
+/// @param[in] longitude 			Longitude of the point, in degrees.
+/// @param[in] map_size 			The map width and height in pixels.
+/// @param[out] pixel_x 			Output parameter receiving the X coordinate of pixel.
+void saim_longitude_to_pixel_x(struct saim_provider * provider, double longitude, int map_size, int* pixel_x);
 
-//! Converts a point from latitude WGS-84 coordinates (in degrees)
-// into pixel Y at a specified level of detail.
-// @param[in] latitude Latitude of the point, in degrees.
-// @param[in] map_size The map width and height in pixels.
-// @param[out] pixel_y Output parameter receiving the Y coordinate of pixel.
-void saim_latitude_to_pixel_y(double latitude, int map_size, int* pixel_y);
+/// Converts a point from latitude WGS-84 coordinates (in degrees)
+/// into pixel Y at a specified level of detail.
+///
+/// @param[in] provider 			The provider instance.
+/// @param[in] latitude 			Latitude of the point, in degrees.
+/// @param[in] map_size 			The map width and height in pixels.
+/// @param[out] pixel_y 			Output parameter receiving the Y coordinate of pixel.
+void saim_latitude_to_pixel_y(struct saim_provider * provider, double latitude, int map_size, int* pixel_y);
 
-//! Converts a point from latitude/longitude WGS-84 coordinates (in degrees)
-// into tile XY at a specified level of detail.
-// @param[in] latitude Latitude of the point, in degrees.
-// @param[in] longitude Longitude of the point, in degrees.
-// @param[in] level_of_detail Level of detail, from 0 (lowest detail) to 15 (highest detail)
-// @param[out] tile_x Output parameter receiving the X coordinate of tile.
-// @param[out] tile_y Output parameter receiving the Y coordinate of tile.
-void saim_lat_long_to_tile_xy(double latitude, double longitude, int level_of_detail, 
+/// Converts a point from latitude/longitude WGS-84 coordinates (in degrees)
+/// into tile XY at a specified level of detail.
+///
+/// @param[in] provider 			The provider instance.
+/// @param[in] latitude 			Latitude of the point, in degrees.
+/// @param[in] longitude 			Longitude of the point, in degrees.
+/// @param[in] level_of_detail 		Level of detail, from 0 (lowest detail) to 15 (highest detail)
+/// @param[out] tile_x 				Output parameter receiving the X coordinate of tile.
+/// @param[out] tile_y 				Output parameter receiving the Y coordinate of tile.
+void saim_lat_long_to_tile_xy(struct saim_provider * provider, double latitude, double longitude, int level_of_detail,
 	int* tile_x, int* tile_y);
 
-//! Computes optimal level of detail (logically correct method)
-// @param[in] screen_pixel_size_x Pixel size in degrees of one pixel in x direction.
-// @return Optimal level of detail
-int saim_get_optimal_level_of_detail(double screen_pixel_size_x);
+/// Computes optimal level of detail (logically correct method)
+///
+/// @param[in] provider 			The provider instance.
+/// @param[in] screen_pixel_size_x 	Pixel size in degrees of one pixel in x direction.
+/// @return 						Optimal level of detail
+int saim_get_optimal_level_of_detail(struct saim_provider * provider, double screen_pixel_size_x);
 
-//! Projects cube point onto sphere point (geodetic coordinates).
-// @param[in] face Index of the face of the cube (from 0 to 5).
-// @param[in] u First coordinate of face point.
-// @param[in] v Second coordinate of face point.
-// @param[out] latitude Latitude of the sphere point, in degrees.
-// @param[out] longitude Longitude of the sphere point, in degrees.
+/// Projects cube point onto sphere point (geodetic coordinates).
+///
+/// @param[in] face 				Index of the face of the cube (from 0 to 5).
+/// @param[in] u 					First coordinate of face point.
+/// @param[in] v 					Second coordinate of face point.
+/// @param[out] latitude 			Latitude of the sphere point, in degrees.
+/// @param[out] longitude 			Longitude of the sphere point, in degrees.
 void saim_cube_point_to_lat_lon(int face, double u, double v, double* latitude, double* longitude);
 
 #endif

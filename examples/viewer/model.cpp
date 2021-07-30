@@ -3,7 +3,8 @@
 #include "saim.h"
 
 Model::Model()
-: buffer_(nullptr)
+: instance_(nullptr)
+, buffer_(nullptr)
 , width_(640)
 , height_(480)
 , bytes_per_pixel_(3)
@@ -16,11 +17,14 @@ Model::~Model()
 }
 bool Model::Initialize()
 {
-	return saim_init("", nullptr, 0, 1) == 0;
+	int result;
+	instance_ = saim_init("", nullptr, 0, 1, &result);
+	return result == 0;
 }
 void Model::Deinitialize()
 {
-	saim_cleanup();
+	saim_cleanup(instance_);
+	instance_ = nullptr;
 }
 void Model::SetTarget(int width, int height)
 {
@@ -29,8 +33,8 @@ void Model::SetTarget(int width, int height)
 	if (buffer_)
 		delete[] buffer_;
 	buffer_ = new unsigned char[width_ * height_ * bytes_per_pixel_];
-	saim_set_target(buffer_, width_, height_, bytes_per_pixel_);
-	saim_set_bitmap_cache_size(50);
+	saim_set_target(instance_, buffer_, width_, height_, bytes_per_pixel_);
+	saim_set_bitmap_cache_size(instance_, 50);
 }
 void Model::ConvertRgbToBgr()
 {
@@ -48,7 +52,7 @@ void Model::ConvertRgbToBgr()
 }
 int Model::Render(double upper_latitude, double left_longitude, double lower_latitude, double right_longitude)
 {
-	return saim_render_aligned(upper_latitude, left_longitude, lower_latitude, right_longitude);
+	return saim_render_aligned(instance_, upper_latitude, left_longitude, lower_latitude, right_longitude);
 }
 const int Model::width() const
 {

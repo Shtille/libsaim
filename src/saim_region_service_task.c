@@ -26,11 +26,10 @@
 
 #include "saim_region_service_task.h"
 
+#include "saim_instance.h"
 #include "saim_storage.h"
 #include "saim_curl_wrapper.h"
 #include "saim_provider.h"
-
-extern saim_provider * s_provider;
 
 static size_t on_data_received(void* buffer, size_t size, size_t nmemb, void* userdata)
 {
@@ -64,7 +63,7 @@ bool saim_region_service_task__execute(saim_region_service_task * task)
 {
 	char url_buffer[260];
 	// Setup working key to make buffer be filled properly
-	saim_provider__fill_buffer_for_key(s_provider, &task->key, url_buffer);
+	saim_provider__fill_buffer_for_key(task->storage->instance->provider, &task->key, url_buffer);
 	return saim_curl_wrapper__download(task->curl_wrapper,
 		url_buffer, (void*)&task->data, on_data_received);
 }

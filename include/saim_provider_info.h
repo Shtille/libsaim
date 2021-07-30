@@ -39,9 +39,11 @@ enum {
 	SAIM_BITMAP_SIZE		= 4
 };
 
-/*! @brief A provider info structure.
-*/
-typedef struct {
+typedef struct saim_provider_info saim_provider_info;
+/*! 
+ * @brief A provider info structure.
+ */
+struct saim_provider_info {
 	double min_latitude;	//!< minimum latitude in tile service source
 	double max_latitude;	//!< maximum latitude in tile service source
 	double min_longitude;	//!< minimum longitude in tile service source
@@ -51,6 +53,6 @@ typedef struct {
 	int bitmap_width;		//!< a single tile width
 	int bitmap_height;		//!< a single tile height
 	char string[260];		//!< URL format to download tiles
-} saim_provider_info;
+};
 
 #endif

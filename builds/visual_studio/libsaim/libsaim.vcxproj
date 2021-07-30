@@ -154,7 +154,7 @@
     <ClInclude Include="..\..\..\src\saim_key_pair.h" />
     <ClInclude Include="..\..\..\src\saim_key_region.h" />
     <ClInclude Include="..\..\..\src\saim_key_set.h" />
-    <ClInclude Include="..\..\..\src\saim_manager.h" />
+    <ClInclude Include="..\..\..\src\saim_instance.h" />
     <ClInclude Include="..\..\..\src\saim_provider.h" />
     <ClInclude Include="..\..\..\src\saim_regions_header_file.h" />
     <ClInclude Include="..\..\..\src\saim_region_info.h" />
@@ -201,7 +201,7 @@
     <ClCompile Include="..\..\..\src\saim_key_region.c" />
     <ClCompile Include="..\..\..\src\saim_key_set.c" />
     <ClCompile Include="..\..\..\src\saim_main.c" />
-    <ClCompile Include="..\..\..\src\saim_manager.c" />
+    <ClCompile Include="..\..\..\src\saim_instance.c" />
     <ClCompile Include="..\..\..\src\saim_provider.c" />
     <ClCompile Include="..\..\..\src\saim_regions_header_file.c" />
     <ClCompile Include="..\..\..\src\saim_region_info.c" />

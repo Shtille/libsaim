@@ -26,11 +26,10 @@
 
 #include "saim_tile_service_task.h"
 
+#include "saim_instance.h"
 #include "saim_storage.h"
 #include "saim_curl_wrapper.h"
 #include "saim_provider.h"
-
-extern saim_provider * s_provider;
 
 static size_t on_data_received(void* buffer, size_t size, size_t nmemb, void* userdata)
 {
@@ -73,7 +72,7 @@ bool saim_tile_service_task__execute(saim_tile_service_task * task)
 	else // download
 	{
 		// Setup working key to make buffer be filled properly
-		saim_provider__fill_buffer_for_key(s_provider, &task->key, url_buffer);
+		saim_provider__fill_buffer_for_key(task->storage->instance->provider, &task->key, url_buffer);
 		return saim_curl_wrapper__download(task->curl_wrapper,
 			url_buffer, (void*)&task->data, on_data_received);
 	}
@@ -86,7 +85,7 @@ void saim_tile_service_task__notify(saim_tile_service_task * task, bool success)
 		{
 			// Then notify main observer (to let copy or move data)
 			if (task->function)
-				task->function(&task->key, &task->data, true);
+				task->function(task->storage->instance, &task->key, &task->data, true);
 		}
 		else // download
 		{
@@ -95,7 +94,7 @@ void saim_tile_service_task__notify(saim_tile_service_task * task, bool success)
 			{
 				// Then notify main observer (to let copy or move data)
 				if (task->function)
-					task->function(&task->key, &task->data, true);
+					task->function(task->storage->instance, &task->key, &task->data, true);
 			}
 			else
 			{
@@ -106,6 +105,6 @@ void saim_tile_service_task__notify(saim_tile_service_task * task, bool success)
 	else // skip notification
 	{
 		if (task->function)
-			task->function(&task->key, &task->data, false);
+			task->function(task->storage->instance, &task->key, &task->data, false);
 	}
 }
