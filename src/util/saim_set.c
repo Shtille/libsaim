@@ -134,6 +134,11 @@ saim_set_node * saim_set_insert(saim_set * tree, void * data)
   saim_set_node * x;
   saim_set_node * new_node;
 
+  // Try to find existing data first
+  x = saim_set_search(tree, data);
+  if (x != tree->nil)
+    return x;
+
   x = (saim_set_node *) SAIM_MALLOC(sizeof(saim_set_node));
   x->data = data;
 
