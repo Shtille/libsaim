@@ -26,8 +26,6 @@
 
 #include "saim_mercator.h"
 
-#include "../saim_provider.h"
-
 #include <math.h>
 #include <assert.h>
 

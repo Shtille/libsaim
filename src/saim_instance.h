@@ -27,6 +27,9 @@
 #ifndef __SAIM_INSTANCE_H__
 #define __SAIM_INSTANCE_H__
 
+#include "saim_provider_info.h"
+#include "saim_data_key.h"
+
 #include <stdbool.h>
 
 typedef struct saim_instance saim_instance;
@@ -47,12 +50,12 @@ void saim_instance__destroy(saim_instance * instance);
 bool saim_instance__initialize(saim_instance * instance, const char* hash_string, int service_count);
 void saim_instance__deinitialize(saim_instance * instance);
 
-bool saim_instance__set_provider(saim_instance * instance, struct saim_provider_info * provider_info, int flags);
+bool saim_instance__set_provider(saim_instance * instance, saim_provider_info * provider_info, int flags);
 
 void saim_instance__enable_viewport_clipping(saim_instance * instance);
 void saim_instance__disable_viewport_clipping(saim_instance * instance);
 bool saim_instance__is_viewport_clipping_enabled(saim_instance * instance);
 
-bool saim_instance__is_in_viewport(saim_instance * instance, const struct saim_data_key * key);
+bool saim_instance__is_in_viewport(saim_instance * instance, const saim_data_key * key);
 
 #endif

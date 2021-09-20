@@ -26,7 +26,6 @@
 
 #include "saim_tile_service_task.h"
 
-#include "saim_instance.h"
 #include "saim_storage.h"
 #include "saim_curl_wrapper.h"
 #include "saim_provider.h"

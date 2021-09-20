@@ -28,12 +28,13 @@
 #define __SAIM_TILE_SERVICE_TASK_H__
 
 #include "saim_data_key.h"
+#include "saim_instance.h"
 
 #include "util/saim_string.h"
 
 #include <stdbool.h>
 
-typedef void (*saim_tile_notification_function)(struct saim_instance * instance, const saim_data_key * key, saim_string * data, bool success);
+typedef void (*saim_tile_notification_function)(saim_instance * instance, const saim_data_key * key, saim_string * data, bool success);
 
 typedef struct saim_tile_service_task saim_tile_service_task;
 
