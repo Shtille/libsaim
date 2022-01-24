@@ -33,6 +33,26 @@
 #include <stdio.h>
 #include <assert.h>
 
+static bool _get_color_type(int bytes_per_pixel, png_bytep color_type)
+{
+	if (bytes_per_pixel == 4)
+	{
+		*color_type = PNG_COLOR_TYPE_RGB_ALPHA;
+		return true;
+	}
+	else if (bytes_per_pixel == 3)
+	{
+		*color_type = PNG_COLOR_TYPE_RGB;
+		return true;
+	}
+	else if (bytes_per_pixel == 1)
+	{
+		*color_type = PNG_COLOR_TYPE_GRAY;
+		return true;
+	}
+	return false;
+}
+
 bool saim_decoder_png__check_signature(const unsigned char* buffer, size_t length)
 {
 	return png_check_sig(buffer, length);
@@ -40,7 +60,12 @@ bool saim_decoder_png__check_signature(const unsigned char* buffer, size_t lengt
 bool saim_decoder_png__save(const char* filename, bool inverted_row_order,
 	int width, int height, int bpp, const saim_bitmap * bitmap)
 {
-	assert(bpp == 4);
+	png_byte color_type;
+	if (!_get_color_type(bpp, &color_type))
+	{
+		fprintf(stderr, "saim: wrong bytes per pixel: %i\n", bpp);
+		return false;
+	}
 
 	FILE * file;
 	file = fopen(filename, "wb");
@@ -84,7 +109,7 @@ bool saim_decoder_png__save(const char* filename, bool inverted_row_order,
 		info,
 		width, height,
 		8,
-		PNG_COLOR_TYPE_RGBA,
+		color_type,
 		PNG_INTERLACE_NONE,
 		PNG_COMPRESSION_TYPE_DEFAULT,
 		PNG_FILTER_TYPE_DEFAULT
@@ -239,6 +264,13 @@ static void flush_function(png_structp png_ptr)
 bool saim_decoder_png__save_to_buffer(const saim_bitmap * bitmap, bool inverted_row_order,
 	int width, int height, int bpp, saim_string * data)
 {
+	png_byte color_type;
+	if (!_get_color_type(bpp, &color_type))
+	{
+		fprintf(stderr, "saim: wrong bytes per pixel: %i\n", bpp);
+		return false;
+	}
+
 	png_structp png = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	if (!png)
 	{
@@ -269,7 +301,7 @@ bool saim_decoder_png__save_to_buffer(const saim_bitmap * bitmap, bool inverted_
 		info,
 		width, height,
 		8,
-		PNG_COLOR_TYPE_RGBA,
+		color_type,
 		PNG_INTERLACE_NONE,
 		PNG_COMPRESSION_TYPE_DEFAULT,
 		PNG_FILTER_TYPE_DEFAULT
