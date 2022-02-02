@@ -10,6 +10,7 @@ Downloads, stores and renders tiles from any web tiling service.
 `libsaim` is a small library written in C with few dependencies. It downloads tiles via `libcurl` and places images into efficient and fast local storage (up to 2Gb). Then on any request it gets image from the storage, decompresses it via `libjpeg` or `libpng`, puts into RAM and renders into target buffer very fast.
 Really comes in handy when you're going to create some application with satellite imagery.
 Tiling service should store JPEG or PNG images in [mercator projection](https://en.wikipedia.org/wiki/Mercator_projection).
+All library functions are meant to be _synchronous_. Make sure its calls are guarded.
 
 How to get
 ------------

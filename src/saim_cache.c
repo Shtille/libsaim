@@ -35,6 +35,8 @@ bool saim_cache__create(saim_cache * cache, const char* hash_string, int service
 	cache->tile_service_count = service_count;
 	if (service_count <= 0)
 		cache->tile_service_count = 1; // default value
+	if (cache->tile_service_count > SAIM_MAX_TILE_SERVICE_COUNT)
+		cache->tile_service_count = SAIM_MAX_TILE_SERVICE_COUNT;
 	for (i = 0; i < cache->tile_service_count; ++i)
 	{
 		if (!saim_tile_service__create(&cache->tile_services[i]))
