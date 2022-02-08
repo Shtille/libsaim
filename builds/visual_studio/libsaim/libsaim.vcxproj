@@ -130,6 +130,7 @@
     <ClInclude Include="..\..\..\deps\tinycthread.h" />
     <ClInclude Include="..\..\..\include\saim.h" />
     <ClInclude Include="..\..\..\include\saim_provider_info.h" />
+    <ClInclude Include="..\..\..\include\saim_target_info.h" />
     <ClInclude Include="..\..\..\src\rasterizer\saim_bitmap.h" />
     <ClInclude Include="..\..\..\src\rasterizer\saim_bitmap_buffer.h" />
     <ClInclude Include="..\..\..\src\rasterizer\saim_bitmap_cache_info.h" />
@@ -141,8 +142,10 @@
     <ClInclude Include="..\..\..\src\rasterizer\saim_data_pair_list.h" />
     <ClInclude Include="..\..\..\src\rasterizer\saim_decoder_jpeg.h" />
     <ClInclude Include="..\..\..\src\rasterizer\saim_decoder_png.h" />
+    <ClInclude Include="..\..\..\src\rasterizer\saim_line_buffer.h" />
     <ClInclude Include="..\..\..\src\rasterizer\saim_mercator.h" />
     <ClInclude Include="..\..\..\src\rasterizer\saim_rasterizer.h" />
+    <ClInclude Include="..\..\..\src\rasterizer\saim_rasterizer_async.h" />
     <ClInclude Include="..\..\..\src\saim_cache.h" />
     <ClInclude Include="..\..\..\src\saim_curl_wrapper.h" />
     <ClInclude Include="..\..\..\src\saim_data_info.h" />
@@ -191,6 +194,8 @@
     <ClCompile Include="..\..\..\src\rasterizer\saim_decoder_png.c" />
     <ClCompile Include="..\..\..\src\rasterizer\saim_mercator.c" />
     <ClCompile Include="..\..\..\src\rasterizer\saim_rasterizer.c" />
+    <ClCompile Include="..\..\..\src\rasterizer\saim_rasterizer_async.c" />
+    <ClCompile Include="..\..\..\src\rasterizer\saim_target_info.c" />
     <ClCompile Include="..\..\..\src\saim_cache.c" />
     <ClCompile Include="..\..\..\src\saim_curl_wrapper.c" />
     <ClCompile Include="..\..\..\src\saim_data_key.c" />

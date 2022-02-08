@@ -28,6 +28,7 @@
 
 #include "saim_instance.h"
 #include "rasterizer/saim_rasterizer.h"
+#include "rasterizer/saim_rasterizer_async.h"
 #include "util/saim_memory.h"
 
 #include <string.h>
@@ -121,6 +122,7 @@ void saim_set_target(saim_instance * instance,
 void saim_set_bitmap_cache_size(saim_instance * instance, unsigned int size)
 {
 	instance->rasterizer->max_bitmap_cache_size = size;
+	instance->rasterizer_async->max_bitmap_cache_size = size;
 }
 void saim_set_memory_functions(
 	void* (*user_malloc)(size_t /*size*/),
@@ -141,18 +143,39 @@ void saim_set_memory_functions(
 	assert(!"You should define SAIM_USING_USER_MEMORY_FUNCTIONS to use this function");
 #endif
 }
-int saim_render_aligned(saim_instance * instance, double upper_latitude, double left_longitude, double lower_latitude, double right_longitude)
+int saim_render_aligned(saim_instance * instance, 
+	double upper_latitude, double left_longitude, double lower_latitude, double right_longitude)
 {
 	return saim_rasterizer__render_aligned(instance->rasterizer,
 		upper_latitude, left_longitude, lower_latitude, right_longitude);
 }
-int saim_render_common(saim_instance * instance, double upper_latitude, double left_longitude, double lower_latitude, double right_longitude, float angle)
+int saim_render_common(saim_instance * instance, 
+	double upper_latitude, double left_longitude, double lower_latitude, double right_longitude, float angle)
 {
 	return saim_rasterizer__render_common(instance->rasterizer,
 		upper_latitude, left_longitude, lower_latitude, right_longitude, angle);
 }
-int saim_render_mapped_cube(saim_instance * instance, int face, int lod, int x, int y)
+int saim_render_mapped_cube(saim_instance * instance, 
+	int face, int lod, int x, int y)
 {
 	return saim_rasterizer__render_mapped_cube(instance->rasterizer,
+		face, lod, x, y);
+}
+int saim_render_aligned_async(saim_instance * instance, saim_target_info * target_info,
+	double upper_latitude, double left_longitude, double lower_latitude, double right_longitude)
+{
+	return saim_rasterizer_async__render_aligned(instance->rasterizer_async, target_info,
+		upper_latitude, left_longitude, lower_latitude, right_longitude);
+}
+int saim_render_common_async(saim_instance * instance, saim_target_info * target_info,
+	double upper_latitude, double left_longitude, double lower_latitude, double right_longitude, float angle)
+{
+	return saim_rasterizer_async__render_common(instance->rasterizer_async, target_info,
+		upper_latitude, left_longitude, lower_latitude, right_longitude, angle);
+}
+int saim_render_mapped_cube_async(saim_instance * instance, saim_target_info * target_info,
+	int face, int lod, int x, int y)
+{
+	return saim_rasterizer_async__render_mapped_cube(instance->rasterizer_async, target_info,
 		face, lod, x, y);
 }

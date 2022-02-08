@@ -37,11 +37,12 @@ typedef struct saim_instance saim_instance;
  * Structure holds instance-specific data
  */
 struct saim_instance {
-	struct saim_provider * provider;			//!< pointer to provider instance
-	struct saim_cache * cache;					//!< pointer to cache instance
-	struct saim_rasterizer * rasterizer;		//!< pointer to rasterizer instance
-	char path[260];								//!< working path
-	bool viewport_clipping_enabled;				//!< is viewport clipping enabled
+	struct saim_provider * provider;					//!< pointer to provider instance
+	struct saim_cache * cache;							//!< pointer to cache instance
+	struct saim_rasterizer * rasterizer;				//!< pointer to rasterizer instance
+	struct saim_rasterizer_async * rasterizer_async;	//!< pointer to rasterizer async instance
+	char path[260];										//!< working path
+	bool viewport_clipping_enabled;						//!< is viewport clipping enabled
 };
 
 bool saim_instance__create(saim_instance * instance);

@@ -5,6 +5,7 @@
 #include "saim_provider.h"
 #include "saim_cache.h"
 #include "rasterizer/saim_rasterizer.h"
+#include "rasterizer/saim_rasterizer_async.h"
 
 #include "util/saim_memory.h"
 #include "util/saim_string.h"
@@ -14,6 +15,7 @@ bool saim_instance__create(saim_instance * instance)
 	instance->provider = NULL;
 	instance->cache = NULL;
 	instance->rasterizer = NULL;
+	instance->rasterizer_async = NULL;
 	instance->viewport_clipping_enabled = false;
 	return true;
 }
@@ -32,6 +34,10 @@ bool saim_instance__initialize(saim_instance * instance, const char* hash_string
 
 	instance->rasterizer = (saim_rasterizer *) SAIM_MALLOC(sizeof(saim_rasterizer));
 	if (!saim_rasterizer__create(instance->rasterizer, instance))
+		return false;
+
+	instance->rasterizer_async = (saim_rasterizer_async *) SAIM_MALLOC(sizeof(saim_rasterizer_async));
+	if (!saim_rasterizer_async__create(instance->rasterizer_async, instance))
 		return false;
 
 	instance->cache = (saim_cache *) SAIM_MALLOC(sizeof(saim_cache));
@@ -56,6 +62,12 @@ void saim_instance__deinitialize(saim_instance * instance)
 		saim_rasterizer__destroy(instance->rasterizer);
 		SAIM_FREE(instance->rasterizer);
 		instance->rasterizer = NULL;
+	}
+	if (instance->rasterizer_async)
+	{
+		saim_rasterizer_async__destroy(instance->rasterizer_async);
+		SAIM_FREE(instance->rasterizer_async);
+		instance->rasterizer_async = NULL;
 	}
 	if (instance->provider)
 	{

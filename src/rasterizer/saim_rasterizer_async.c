@@ -1,7 +1,7 @@
 /*************************************************************************
 * libsaim 1.0
 * ------------------------------------------------------------------------
-*  Copyright (c) 2016 Vladimir Sviridov <v.shtille@gmail.com>
+*  Copyright (c) 2022 Vladimir Sviridov <v.shtille@gmail.com>
 * 
 *  This software is provided 'as-is', without any express or implied
 *  warranty. In no event will the authors be held liable for any damages
@@ -24,7 +24,7 @@
 * 
 **************************************************************************/
 
-#include "saim_rasterizer.h"
+#include "saim_rasterizer_async.h"
 
 #include "saim_mercator.h"
 #include "saim_decoder_jpeg.h"
@@ -38,108 +38,100 @@
 #include <math.h>
 #include <assert.h>
 
-bool saim_rasterizer__create(saim_rasterizer * rasterizer, saim_instance * instance)
+bool saim_rasterizer_async__create(saim_rasterizer_async * rasterizer, saim_instance * instance)
 {
 	const unsigned int kDefaultBitmapCapacity = 500;
 
 	rasterizer->instance = instance;
 
-	if (mtx_init(&rasterizer->mutex, mtx_plain) == thrd_error)
+	if (mtx_init(&rasterizer->request_mutex, mtx_plain) == thrd_error)
 	{
 		fprintf(stderr, "saim: mutex init failed\n");
+		return false;
+	}
+	if (mtx_init(&rasterizer->bitmap_mutex, mtx_plain) == thrd_error)
+	{
+		fprintf(stderr, "saim: mutex init failed\n");
+		mtx_destroy(&rasterizer->request_mutex);
+		return false;
+	}
+	if (mtx_init(&rasterizer->pending_data_mutex, mtx_plain) == thrd_error)
+	{
+		fprintf(stderr, "saim: mutex init failed\n");
+		mtx_destroy(&rasterizer->bitmap_mutex);
+		mtx_destroy(&rasterizer->request_mutex);
 		return false;
 	}
 	saim_data_pair_list__create(&rasterizer->pending_data);
 	saim_key_set__create(&rasterizer->requested_keys);
 	saim_bitmap_map__create(&rasterizer->bitmap_map);
-	saim_bitmap_buffer__create(&rasterizer->bitmap_buffer);
 	saim_bitmap_cache_info_list__create(&rasterizer->bitmap_cache);
 
-	rasterizer->target_buffer = 0;
-	rasterizer->x_buffer_size = 0;
-	rasterizer->y_buffer_size = 0;
-	rasterizer->x_keys = 0;
-	rasterizer->x_samples = 0;
-	rasterizer->x_pixels = 0;
-	rasterizer->y_keys = 0;
-	rasterizer->y_samples = 0;
-	rasterizer->y_pixels = 0;
 	rasterizer->render_counter = 0;
 	rasterizer->sort_shift_counter = 0;
 	rasterizer->max_bitmap_cache_size = kDefaultBitmapCapacity;
 
 	return true;
 }
-void saim_rasterizer__destroy(saim_rasterizer * rasterizer)
+void saim_rasterizer_async__destroy(saim_rasterizer_async * rasterizer)
 {
-	saim_rasterizer__clear(rasterizer);
+	saim_rasterizer_async__clear(rasterizer);
 	saim_bitmap_cache_info_list__destroy(&rasterizer->bitmap_cache);
-	saim_bitmap_buffer__destroy(&rasterizer->bitmap_buffer);
 	saim_bitmap_map__destroy(&rasterizer->bitmap_map);
 	saim_key_set__destroy(&rasterizer->requested_keys);
 	saim_data_pair_list__destroy(&rasterizer->pending_data);
-	mtx_destroy(&rasterizer->mutex);
-	if (rasterizer->x_buffer_size)
-	{
-		SAIM_FREE(rasterizer->x_keys);
-		SAIM_FREE(rasterizer->x_samples);
-		SAIM_FREE(rasterizer->x_pixels);
-	}
-	if (rasterizer->y_buffer_size)
-	{
-		SAIM_FREE(rasterizer->y_keys);
-		SAIM_FREE(rasterizer->y_samples);
-		SAIM_FREE(rasterizer->y_pixels);
-	}
+	mtx_destroy(&rasterizer->pending_data_mutex);
+	mtx_destroy(&rasterizer->bitmap_mutex);
+	mtx_destroy(&rasterizer->request_mutex);
 }
-int saim_rasterizer__render_aligned(saim_rasterizer * rasterizer,
+int saim_rasterizer_async__render_aligned(saim_rasterizer_async * rasterizer, saim_target_info * target_info,
 	double upper_latitude, double left_longitude, double lower_latitude, double right_longitude)
 {
 	int num_tiles_to_load, optimal_lod;
-	if (rasterizer->target_buffer == 0)
+	if (target_info->target_buffer == 0)
 	{
 		fprintf(stderr, "saim: target buffer hasn't been set\n");
 		return -1;
 	}
-	saim_rasterizer__pre_render(rasterizer,
+	saim_rasterizer_async__pre_render(rasterizer, target_info,
 		upper_latitude, left_longitude, lower_latitude, right_longitude,
 		&num_tiles_to_load, &optimal_lod);
-	saim_rasterizer__render_aligned_impl(rasterizer,
+	saim_rasterizer_async__render_aligned_impl(rasterizer, target_info,
 		upper_latitude, left_longitude, lower_latitude, right_longitude, optimal_lod);
 	return num_tiles_to_load;
 }
-int saim_rasterizer__render_common(saim_rasterizer * rasterizer,
+int saim_rasterizer_async__render_common(saim_rasterizer_async * rasterizer, saim_target_info * target_info,
 	double upper_latitude, double left_longitude, double lower_latitude, double right_longitude, float angle)
 {
 	int num_tiles_to_load, optimal_lod;
 	float sin_angle, cos_angle;
 	const float kDegToRad = 0.017453292f;
 	const float angle_rad = angle * kDegToRad;
-	if (rasterizer->target_buffer == 0)
+	if (target_info->target_buffer == 0)
 	{
 		fprintf(stderr, "saim: target buffer hasn't been set\n");
 		return -1;
 	}
 	sin_angle = sinf(angle_rad);
 	cos_angle = cosf(angle_rad);
-	saim_rasterizer__pre_render(rasterizer,
+	saim_rasterizer_async__pre_render(rasterizer, target_info,
 		upper_latitude, left_longitude, lower_latitude, right_longitude,
 		&num_tiles_to_load, &optimal_lod);
-	saim_rasterizer__render_common_impl(rasterizer,
+	saim_rasterizer_async__render_common_impl(rasterizer, target_info,
 		upper_latitude, left_longitude, lower_latitude, right_longitude, optimal_lod, sin_angle, cos_angle);
 	return num_tiles_to_load;
 }
-int saim_rasterizer__render_mapped_cube(saim_rasterizer * rasterizer,
+int saim_rasterizer_async__render_mapped_cube(saim_rasterizer_async * rasterizer, saim_target_info * target_info,
 	int face, int lod, int x, int y)
 {
 	int num_tiles_to_load, optimal_lod;
-	if (rasterizer->target_buffer == 0)
+	if (target_info->target_buffer == 0)
 	{
 		fprintf(stderr, "saim: target buffer hasn't been set\n");
 		return -1;
 	}
 	// Request tiles to load and process loaded ones
-	saim_rasterizer__pre_render_cube(rasterizer,
+	saim_rasterizer_async__pre_render_cube(rasterizer, target_info,
 		face, lod, x, y,
 		&num_tiles_to_load, &optimal_lod);
 
@@ -152,7 +144,7 @@ int saim_rasterizer__render_mapped_cube(saim_rasterizer * rasterizer,
 	double v_min = position_y;
 	double u_max = position_x + inv_scale;
 	double v_max = position_y + inv_scale;
-	saim_rasterizer__render_mapped_cube_impl(rasterizer,
+	saim_rasterizer_async__render_mapped_cube_impl(rasterizer, target_info,
 		face, u_min, v_min, u_max, v_max, optimal_lod);
 	return num_tiles_to_load;
 }
@@ -166,78 +158,94 @@ static void tile_notification_function(saim_instance * instance, const saim_data
 	pair = (saim_data_pair *) SAIM_MALLOC(sizeof(saim_data_pair));
 	saim_data_pair__create(pair);
 	
-	mtx_lock(&instance->rasterizer->mutex);
+	mtx_lock(&instance->rasterizer_async->pending_data_mutex);
 	pair->key = *key; // copy key value
 	if (success)
 	{
 		saim_string_swap(&pair->data, data);
 	}
-	saim_data_pair_list__push_back(&instance->rasterizer->pending_data, pair);
-	mtx_unlock(&instance->rasterizer->mutex);
+	saim_data_pair_list__push_back(&instance->rasterizer_async->pending_data, pair);
+	mtx_unlock(&instance->rasterizer_async->pending_data_mutex);
 }
 
-void saim_rasterizer__push_request(saim_rasterizer * rasterizer, const saim_data_key * key)
+void saim_rasterizer_async__push_request(saim_rasterizer_async * rasterizer, const saim_data_key * key)
 {
+	mtx_lock(&rasterizer->request_mutex);
 	// Whether key requested to load or loaded
-    if (!saim_rasterizer__is_requested(rasterizer, key))
+    if (!saim_rasterizer_async__is_requested(rasterizer, key))
     {
         // Add key to requested list
-        saim_rasterizer__add_request(rasterizer, key);
+        saim_rasterizer_async__add_request(rasterizer, key);
 
         // Perform query for each key that hasn't been loaded
         saim_cache__tile_service_load_query(rasterizer->instance->cache, key, tile_notification_function);
     }
+    mtx_unlock(&rasterizer->request_mutex);
 }
-void saim_rasterizer__clear(saim_rasterizer * rasterizer)
+void saim_rasterizer_async__clear(saim_rasterizer_async * rasterizer)
 {
-	mtx_lock(&rasterizer->mutex);
+	mtx_lock(&rasterizer->pending_data_mutex);
 	saim_data_pair_list__clear(&rasterizer->pending_data);
-	mtx_unlock(&rasterizer->mutex);
+	mtx_unlock(&rasterizer->pending_data_mutex);
 
+	mtx_lock(&rasterizer->request_mutex);
 	saim_key_set__clear(&rasterizer->requested_keys);
+	mtx_unlock(&rasterizer->request_mutex);
+
+	mtx_lock(&rasterizer->bitmap_mutex);
 	saim_bitmap_map__clear(&rasterizer->bitmap_map);
 	saim_bitmap_cache_info_list__clear(&rasterizer->bitmap_cache);
+	mtx_unlock(&rasterizer->bitmap_mutex);
 }
-const saim_bitmap * saim_rasterizer__get_bitmap(saim_rasterizer * rasterizer, const saim_data_key * key, bool use_counter)
+const saim_bitmap * saim_rasterizer_async__get_bitmap(saim_rasterizer_async * rasterizer, const saim_data_key * key, bool use_counter)
 {
+	const saim_bitmap * bitmap = NULL;
 	saim_set_node * node;
 	saim_bitmap_info_pair * pair;
+
+	mtx_lock(&rasterizer->bitmap_mutex);
 	node = saim_bitmap_map__search(&rasterizer->bitmap_map, key);
 	if (node != rasterizer->bitmap_map.set->nil)
 	{
 		pair = (saim_bitmap_info_pair *) node->data;
 		if (use_counter)
 			*pair->info.p_usage = rasterizer->render_counter; // use render counter as bitmap existence time
-		return &(pair->info.bitmap);
+		bitmap = &(pair->info.bitmap);
 	}
-	else
-		return NULL;
+	mtx_unlock(&rasterizer->bitmap_mutex);
+	return bitmap;
 }
-bool saim_rasterizer__is_requested(saim_rasterizer * rasterizer, const saim_data_key * key)
+bool saim_rasterizer_async__is_requested(saim_rasterizer_async * rasterizer, const saim_data_key * key)
 {
 	saim_set_node * node;
 	node = saim_key_set__search(&rasterizer->requested_keys, key);
 	return node != rasterizer->requested_keys.set->nil;
 }
-bool saim_rasterizer__is_loaded(saim_rasterizer * rasterizer, const saim_data_key * key)
+bool saim_rasterizer_async__is_loaded(saim_rasterizer_async * rasterizer, const saim_data_key * key)
 {
 	saim_set_node * node;
+	bool loaded;
+
+	mtx_lock(&rasterizer->bitmap_mutex);
 	node = saim_bitmap_map__search(&rasterizer->bitmap_map, key);
-	return node != rasterizer->bitmap_map.set->nil;
+	loaded = node != rasterizer->bitmap_map.set->nil;
+	mtx_unlock(&rasterizer->bitmap_mutex);
+
+	return loaded;
 }
-void saim_rasterizer__add_request(saim_rasterizer * rasterizer, const saim_data_key * key)
+void saim_rasterizer_async__add_request(saim_rasterizer_async * rasterizer, const saim_data_key * key)
 {
 	saim_data_key * key_copy;
 	key_copy = (saim_data_key *)SAIM_MALLOC(sizeof(saim_data_key));
 	saim_data_key__set_by_other(key_copy, key); // copy
 	saim_key_set__insert(&rasterizer->requested_keys, key_copy);
 }
-static void empty_image(saim_rasterizer * rasterizer, saim_bitmap * bitmap)
+static void empty_image(saim_rasterizer_async * rasterizer, saim_target_info * target_info, saim_bitmap * bitmap)
 {
 	// Make data the same bitness as destination bitmap
 	const int kBitmapWidth = rasterizer->instance->provider->bitmap_width;
 	const int kBitmapHeight = rasterizer->instance->provider->bitmap_height;
-	const int screen_bpp = rasterizer->target_bpp;
+	const int screen_bpp = target_info->target_bpp;
 	const int bitmap_size = kBitmapWidth * kBitmapHeight * screen_bpp;
 	unsigned char * data;
 
@@ -282,33 +290,36 @@ static void empty_image(saim_rasterizer * rasterizer, saim_bitmap * bitmap)
 		assert(false && "wrong number of bytes per pixel");
 	}
 }
-static bool decode_png(saim_rasterizer * rasterizer, const saim_string * data, saim_bitmap * bitmap)
+static bool decode_png(saim_rasterizer_async * rasterizer, saim_target_info * target_info, 
+	const saim_string * data, saim_bitmap * bitmap)
 {
 	// Width, height and bpp parameters are known
 	int width, height, bpp;
 	saim_decoder_png__load_from_buffer(data, false, &width, &height, &bpp, bitmap);
 	assert(width == rasterizer->instance->provider->bitmap_width);
 	assert(height == rasterizer->instance->provider->bitmap_height);
-	assert(bpp == rasterizer->target_bpp);
+	assert(bpp == target_info->target_bpp);
 	return true;
 }
-static bool decode_jpg(saim_rasterizer * rasterizer, const saim_string * data, saim_bitmap * bitmap)
+static bool decode_jpg(saim_rasterizer_async * rasterizer, saim_target_info * target_info,
+	const saim_string * data, saim_bitmap * bitmap)
 {
 	// Width, height and bpp parameters are known
 	int width, height, bpp;
 	saim_decoder_jpeg__load_from_buffer(data, false, &width, &height, &bpp, bitmap);
 	assert(width == rasterizer->instance->provider->bitmap_width);
 	assert(height == rasterizer->instance->provider->bitmap_height);
-	assert(bpp == rasterizer->target_bpp);
+	assert(bpp == target_info->target_bpp);
 	return true;
 }
-static void decode_image(saim_rasterizer * rasterizer, const saim_string * data, saim_bitmap * bitmap)
+static void decode_image(saim_rasterizer_async * rasterizer, saim_target_info * target_info,
+	const saim_string * data, saim_bitmap * bitmap)
 {
 	// If we try to decode wrong type of image, our app will crash
 	// So we have to recognize the image type
 	if (data->length < 3) // number of bytes to decode 'PNG' tag
 	{
-		empty_image(rasterizer, bitmap);
+		empty_image(rasterizer, target_info, bitmap);
 		return;
 	}
 	if (data->data[1] == 'P' &&
@@ -316,23 +327,23 @@ static void decode_image(saim_rasterizer * rasterizer, const saim_string * data,
 		data->data[3] == 'G')
 	{
 		// Format is PNG
-		if (!decode_png(rasterizer, data, bitmap))
+		if (!decode_png(rasterizer, target_info, data, bitmap))
 		{
 			fprintf(stderr, "saim: PNG image decode error\n");
-			empty_image(rasterizer, bitmap);
+			empty_image(rasterizer, target_info, bitmap);
 		}
 	}
 	else
 	{
 		// Format is JPG
-		if (!decode_jpg(rasterizer, data, bitmap))
+		if (!decode_jpg(rasterizer, target_info, data, bitmap))
 		{
 			fprintf(stderr, "saim: JPG image decode error\n");
-			empty_image(rasterizer, bitmap);
+			empty_image(rasterizer, target_info, bitmap);
 		}
 	}
 }
-void saim_rasterizer__data_transform(saim_rasterizer * rasterizer)
+void saim_rasterizer_async__data_transform(saim_rasterizer_async * rasterizer, saim_target_info * target_info)
 {
 	saim_data_pair * pair;
 	const saim_data_key * key;
@@ -341,6 +352,7 @@ void saim_rasterizer__data_transform(saim_rasterizer * rasterizer)
 	saim_bitmap_info_pair * info_pair;
 	saim_bitmap * bitmap;
 
+	mtx_lock(&rasterizer->bitmap_mutex);
 	++rasterizer->render_counter;
 
 	// Perform cache sort once per 10 frames
@@ -348,14 +360,15 @@ void saim_rasterizer__data_transform(saim_rasterizer * rasterizer)
 	if (rasterizer->sort_shift_counter == 10)
 	{
 		rasterizer->sort_shift_counter = 0;
-		saim_rasterizer__sort_cache(rasterizer);
+		saim_rasterizer_async__sort_cache(rasterizer);
 	}
+	mtx_unlock(&rasterizer->bitmap_mutex);
 
 	for (;;)
 	{
-		mtx_lock(&rasterizer->mutex);
+		mtx_lock(&rasterizer->pending_data_mutex);
 		pair = saim_data_pair_list__pop_front(&rasterizer->pending_data);
-		mtx_unlock(&rasterizer->mutex);
+		mtx_unlock(&rasterizer->pending_data_mutex);
 		if (!pair)
 			break; // there is no data to transform
 
@@ -364,11 +377,12 @@ void saim_rasterizer__data_transform(saim_rasterizer * rasterizer)
 		// Check for skipped data
 		if (pair->data.length != 0)
 		{
+			mtx_lock(&rasterizer->bitmap_mutex);
 			if (saim_bitmap_map__size(&rasterizer->bitmap_map) == rasterizer->max_bitmap_cache_size)
 			{
 				// Our cache is full, so we gonna replace existing bitmaps
 				info = saim_bitmap_cache_info_list__pop_front(&rasterizer->bitmap_cache);
-				saim_rasterizer__erase_key_from_buffer(rasterizer, &info->key);
+				saim_rasterizer_async__erase_key_from_buffer(target_info, &info->key);
 				node = saim_bitmap_map__search(&rasterizer->bitmap_map, &info->key);
 				saim_bitmap_map__erase(&rasterizer->bitmap_map, node);
 				SAIM_FREE(info);
@@ -386,21 +400,24 @@ void saim_rasterizer__data_transform(saim_rasterizer * rasterizer)
             node = saim_bitmap_map__insert(&rasterizer->bitmap_map, info_pair);
             info_pair->info.p_usage = & info->usage;
             bitmap = & info_pair->info.bitmap;
+            mtx_unlock(&rasterizer->bitmap_mutex);
 
 			// Pair stores encoded image data, so we have to decode it before use
-			decode_image(rasterizer, &pair->data, bitmap);
+			decode_image(rasterizer, target_info, &pair->data, bitmap);
 		}
 
 		// Data is loaded, so no we don't need this key in requested list
+		mtx_lock(&rasterizer->request_mutex);
 		node = saim_key_set__search(&rasterizer->requested_keys, key);
 		saim_key_set__erase(&rasterizer->requested_keys, node);
+		mtx_unlock(&rasterizer->request_mutex);
 
 		// Finally
 		saim_data_pair__destroy(pair);
 		SAIM_FREE(pair);
 	}
 }
-void saim_rasterizer__pre_render(saim_rasterizer * rasterizer,
+void saim_rasterizer_async__pre_render(saim_rasterizer_async * rasterizer, saim_target_info * target_info,
 	double upper_latitude, double left_longitude, double lower_latitude, double right_longitude,
 	int* num_tiles_to_load, int* optimal_lod)
 {
@@ -408,7 +425,7 @@ void saim_rasterizer__pre_render(saim_rasterizer * rasterizer,
 	saim_data_key key, key_low;
 	const saim_bitmap * bitmap, * bitmap_low;
 
-	double screen_pixel_size_x = (right_longitude - left_longitude)/(double)rasterizer->target_width;
+	double screen_pixel_size_x = (right_longitude - left_longitude)/(double)target_info->target_width;
     *optimal_lod = saim_get_optimal_level_of_detail(rasterizer->instance->provider, screen_pixel_size_x);
 
     // Compute tile keys for bound rect
@@ -425,7 +442,7 @@ void saim_rasterizer__pre_render(saim_rasterizer * rasterizer,
     if (has_break)
         num_x += tiles_per_side;
 
-    saim_rasterizer__initialize_bitmap_buffer(rasterizer, left, right, top, bottom, *optimal_lod, has_break);
+    saim_rasterizer_async__initialize_bitmap_buffer(target_info, left, right, top, bottom, *optimal_lod, has_break);
 
     // Transform rect to list of keys
     *num_tiles_to_load = 0;
@@ -436,13 +453,13 @@ void saim_rasterizer__pre_render(saim_rasterizer * rasterizer,
         int x = (left + i) % tiles_per_side;
         // Add a key to the list
         saim_data_key__create(&key, x, y, *optimal_lod);
-        bitmap = saim_rasterizer__get_bitmap(rasterizer, &key, true);
+        bitmap = saim_rasterizer_async__get_bitmap(rasterizer, &key, true);
 
         if (bitmap == NULL) // not loaded yet
         {
             ++*num_tiles_to_load;
 
-            saim_rasterizer__push_request(rasterizer, &key);
+            saim_rasterizer_async__push_request(rasterizer, &key);
 
             // Try to use low detailed version of bitmap when it didn't load
             bool bitmap_found = false;
@@ -453,11 +470,11 @@ void saim_rasterizer__pre_render(saim_rasterizer * rasterizer,
                 int key_x_low = x >> i;
                 int key_y_low = y >> i;
                 saim_data_key__create(&key_low, key_x_low, key_y_low, lod);
-                bitmap_low = saim_rasterizer__get_bitmap(rasterizer, &key_low, false);
+                bitmap_low = saim_rasterizer_async__get_bitmap(rasterizer, &key_low, false);
                 if (bitmap_low)
                 {
                     bitmap_found = true;
-                    saim_rasterizer__set_bitmap_low_for_buffer(rasterizer, lod, x, y, bitmap_low);
+                    saim_rasterizer_async__set_bitmap_low_for_buffer(target_info, lod, x, y, bitmap_low);
                     break;
                 }
                 else
@@ -466,25 +483,25 @@ void saim_rasterizer__pre_render(saim_rasterizer * rasterizer,
                     if (!lazy_bitmap_found && saim_cache__is_exist(rasterizer->instance->cache, &key_low))
                     {
                         lazy_bitmap_found = true;
-                        saim_rasterizer__push_request(rasterizer, &key_low);
+                        saim_rasterizer_async__push_request(rasterizer, &key_low);
                     }
                 }
             }
             
             // Otherwise nothing to render
             if (!bitmap_found)
-                saim_rasterizer__set_bitmap_for_buffer(rasterizer, x, y, NULL);
+                saim_rasterizer_async__set_bitmap_for_buffer(target_info, x, y, NULL);
         }
         else
         {
-            saim_rasterizer__set_bitmap_for_buffer(rasterizer, x, y, bitmap);
+            saim_rasterizer_async__set_bitmap_for_buffer(target_info, x, y, bitmap);
         }
     }
 
     // Transform any pending data
-    saim_rasterizer__data_transform(rasterizer);
+    saim_rasterizer_async__data_transform(rasterizer, target_info);
 }
-void saim_rasterizer__pre_render_cube(saim_rasterizer * rasterizer,
+void saim_rasterizer_async__pre_render_cube(saim_rasterizer_async * rasterizer, saim_target_info * target_info,
 	int face, int lod, int x, int y,
 	int* num_tiles_to_load, int* optimal_lod)
 {
@@ -493,7 +510,7 @@ void saim_rasterizer__pre_render_cube(saim_rasterizer * rasterizer,
 	const saim_bitmap * bitmap, *bitmap_low;
 
 	double two_power_lod = (double)(1 << lod);
-	double screen_pixel_size_x = (90.0 / two_power_lod) / (double)rasterizer->target_width;
+	double screen_pixel_size_x = (90.0 / two_power_lod) / (double)target_info->target_width;
 	*optimal_lod = saim_get_optimal_level_of_detail(rasterizer->instance->provider, screen_pixel_size_x);
 
 	int tiles_per_side = 1 << *optimal_lod;
@@ -565,7 +582,7 @@ void saim_rasterizer__pre_render_cube(saim_rasterizer * rasterizer,
 	if (has_break)
 		num_x += tiles_per_side;
 
-	saim_rasterizer__initialize_bitmap_buffer(rasterizer, left, right, top, bottom, *optimal_lod, has_break);
+	saim_rasterizer_async__initialize_bitmap_buffer(target_info, left, right, top, bottom, *optimal_lod, has_break);
 
 	// Transform rect to list of keys
 	*num_tiles_to_load = 0;
@@ -577,13 +594,13 @@ void saim_rasterizer__pre_render_cube(saim_rasterizer * rasterizer,
 			int x = (left + i) % tiles_per_side;
 			// Add a key to the list
 			saim_data_key__create(&key, x, y, *optimal_lod);
-			bitmap = saim_rasterizer__get_bitmap(rasterizer, &key, true);
+			bitmap = saim_rasterizer_async__get_bitmap(rasterizer, &key, true);
 
 			if (bitmap == NULL) // not loaded yet
 			{
 				++*num_tiles_to_load;
 
-				saim_rasterizer__push_request(rasterizer, &key);
+				saim_rasterizer_async__push_request(rasterizer, &key);
 
 				// Try to use low detailed version of bitmap when it didn't load
 				bool bitmap_found = false;
@@ -594,11 +611,11 @@ void saim_rasterizer__pre_render_cube(saim_rasterizer * rasterizer,
 					int key_x_low = x >> i;
 					int key_y_low = y >> i;
 					saim_data_key__create(&key_low, key_x_low, key_y_low, lod);
-					bitmap_low = saim_rasterizer__get_bitmap(rasterizer, &key_low, false);
+					bitmap_low = saim_rasterizer_async__get_bitmap(rasterizer, &key_low, false);
 					if (bitmap_low)
 					{
 						bitmap_found = true;
-						saim_rasterizer__set_bitmap_low_for_buffer(rasterizer, lod, x, y, bitmap_low);
+						saim_rasterizer_async__set_bitmap_low_for_buffer(target_info, lod, x, y, bitmap_low);
 						break;
 					}
 					else
@@ -607,26 +624,26 @@ void saim_rasterizer__pre_render_cube(saim_rasterizer * rasterizer,
 						if (!lazy_bitmap_found && saim_cache__is_exist(rasterizer->instance->cache, &key_low))
 						{
 							lazy_bitmap_found = true;
-							saim_rasterizer__push_request(rasterizer, &key_low);
+							saim_rasterizer_async__push_request(rasterizer, &key_low);
 						}
 					}
 				}
 
 				// Otherwise nothing to render
 				if (!bitmap_found)
-					saim_rasterizer__set_bitmap_for_buffer(rasterizer, x, y, NULL);
+					saim_rasterizer_async__set_bitmap_for_buffer(target_info, x, y, NULL);
 			}
 			else
 			{
-				saim_rasterizer__set_bitmap_for_buffer(rasterizer, x, y, bitmap);
+				saim_rasterizer_async__set_bitmap_for_buffer(target_info, x, y, bitmap);
 			}
 		} // for i
 	} // for y
 
 	// Transform any pending data
-	saim_rasterizer__data_transform(rasterizer);
+	saim_rasterizer_async__data_transform(rasterizer, target_info);
 }
-void saim_rasterizer__render_aligned_impl(saim_rasterizer * rasterizer,
+void saim_rasterizer_async__render_aligned_impl(saim_rasterizer_async * rasterizer, saim_target_info * target_info,
 	double upper_latitude,
 	double left_longitude,
 	double lower_latitude,
@@ -634,11 +651,11 @@ void saim_rasterizer__render_aligned_impl(saim_rasterizer * rasterizer,
 	int level_of_detail)
 {
 	// Bitmap should have the same BPP as the target buffer
-	unsigned char * dst = rasterizer->target_buffer;
+	unsigned char * dst = target_info->target_buffer;
 
-	const int screen_width = rasterizer->target_width;
-	const int screen_height = rasterizer->target_height;
-	const int screen_bpp = rasterizer->target_bpp;
+	const int screen_width = target_info->target_width;
+	const int screen_height = target_info->target_height;
+	const int screen_bpp = target_info->target_bpp;
 	const int kBitmapWidth = rasterizer->instance->provider->bitmap_width;
 	const int kBitmapHeight = rasterizer->instance->provider->bitmap_height;
 
@@ -652,40 +669,41 @@ void saim_rasterizer__render_aligned_impl(saim_rasterizer * rasterizer,
 	const int total_buffer_size = (screen_width > screen_height) ? (screen_width << 1) : (screen_height << 1);
 
 	// Resize buffers
-	if (rasterizer->x_buffer_size != total_buffer_size)
+	saim_line_buffer * line_buffer = (saim_line_buffer *) target_info->line_buffer;
+	if (line_buffer->x_buffer_size != total_buffer_size)
 	{
-		if (rasterizer->x_buffer_size)
+		if (line_buffer->x_buffer_size)
 		{
-			SAIM_FREE(rasterizer->x_keys);
-			SAIM_FREE(rasterizer->x_samples);
-			SAIM_FREE(rasterizer->x_pixels);
+			SAIM_FREE(line_buffer->x_keys);
+			SAIM_FREE(line_buffer->x_samples);
+			SAIM_FREE(line_buffer->x_pixels);
 		}
-		rasterizer->x_buffer_size = total_buffer_size;
-		rasterizer->x_keys    = (int*) SAIM_MALLOC(rasterizer->x_buffer_size * sizeof(int));
-		rasterizer->x_samples = (int*) SAIM_MALLOC(rasterizer->x_buffer_size * sizeof(int));
-		rasterizer->x_pixels  = (int*) SAIM_MALLOC(rasterizer->x_buffer_size * sizeof(int));
+		line_buffer->x_buffer_size = total_buffer_size;
+		line_buffer->x_keys    = (int*) SAIM_MALLOC(line_buffer->x_buffer_size * sizeof(int));
+		line_buffer->x_samples = (int*) SAIM_MALLOC(line_buffer->x_buffer_size * sizeof(int));
+		line_buffer->x_pixels  = (int*) SAIM_MALLOC(line_buffer->x_buffer_size * sizeof(int));
 	}
-	if (rasterizer->y_buffer_size != total_buffer_size)
+	if (line_buffer->y_buffer_size != total_buffer_size)
 	{
-		if (rasterizer->y_buffer_size)
+		if (line_buffer->y_buffer_size)
 		{
-			SAIM_FREE(rasterizer->y_keys);
-			SAIM_FREE(rasterizer->y_samples);
-			SAIM_FREE(rasterizer->y_pixels);
+			SAIM_FREE(line_buffer->y_keys);
+			SAIM_FREE(line_buffer->y_samples);
+			SAIM_FREE(line_buffer->y_pixels);
 		}
-		rasterizer->y_buffer_size = total_buffer_size;
-		rasterizer->y_keys    = (int*) SAIM_MALLOC(rasterizer->y_buffer_size * sizeof(int));
-		rasterizer->y_samples = (int*) SAIM_MALLOC(rasterizer->y_buffer_size * sizeof(int));
-		rasterizer->y_pixels  = (int*) SAIM_MALLOC(rasterizer->y_buffer_size * sizeof(int));
+		line_buffer->y_buffer_size = total_buffer_size;
+		line_buffer->y_keys    = (int*) SAIM_MALLOC(line_buffer->y_buffer_size * sizeof(int));
+		line_buffer->y_samples = (int*) SAIM_MALLOC(line_buffer->y_buffer_size * sizeof(int));
+		line_buffer->y_pixels  = (int*) SAIM_MALLOC(line_buffer->y_buffer_size * sizeof(int));
 	}
 
 	// Copy pointers to variables for faster access
-	int * x_keys    = rasterizer->x_keys;
-	int * x_samples = rasterizer->x_samples;
-	int * x_pixels  = rasterizer->x_pixels;
-	int * y_keys    = rasterizer->y_keys;
-	int * y_samples = rasterizer->y_samples;
-	int * y_pixels  = rasterizer->y_pixels;
+	int * x_keys    = line_buffer->x_keys;
+	int * x_samples = line_buffer->x_samples;
+	int * x_pixels  = line_buffer->x_pixels;
+	int * y_keys    = line_buffer->y_keys;
+	int * y_samples = line_buffer->y_samples;
+	int * y_pixels  = line_buffer->y_pixels;
 
 	// Fill buffers
 	for (int x = 0; x < screen_width; ++x)
@@ -717,7 +735,7 @@ void saim_rasterizer__render_aligned_impl(saim_rasterizer * rasterizer,
 			int key_x = x_keys[x];
 
 			const saim_buffered_bitmap_info * info;
-			info = saim_rasterizer__get_bitmap_from_buffer(rasterizer, key_x, key_y);
+			info = saim_rasterizer_async__get_bitmap_from_buffer(target_info, key_x, key_y);
 			if (info->bitmap == NULL)
 			{
 				// Tile hasn't been loaded yet
@@ -753,15 +771,15 @@ void saim_rasterizer__render_aligned_impl(saim_rasterizer * rasterizer,
 		} // for x
 	} // for y
 }
-void saim_rasterizer__render_common_impl(saim_rasterizer * rasterizer,
+void saim_rasterizer_async__render_common_impl(saim_rasterizer_async * rasterizer, saim_target_info * target_info,
 	double upper_latitude, double left_longitude, double lower_latitude, double right_longitude,
 	int level_of_detail, float sin_angle, float cos_angle)
 {
-	unsigned char * dst = rasterizer->target_buffer;
+	unsigned char * dst = target_info->target_buffer;
 
-	const int screen_width = rasterizer->target_width;
-	const int screen_height = rasterizer->target_height;
-	const int screen_bpp = rasterizer->target_bpp;
+	const int screen_width = target_info->target_width;
+	const int screen_height = target_info->target_height;
+	const int screen_bpp = target_info->target_bpp;
 	const int kBitmapWidth = rasterizer->instance->provider->bitmap_width;
 	const int kBitmapHeight = rasterizer->instance->provider->bitmap_height;
 
@@ -783,40 +801,41 @@ void saim_rasterizer__render_common_impl(saim_rasterizer * rasterizer,
 	const int total_buffer_size = (screen_width > screen_height) ? (screen_width << 1) : (screen_height << 1);
 
 	// Resize buffers
-	if (rasterizer->x_buffer_size != total_buffer_size)
+	saim_line_buffer * line_buffer = (saim_line_buffer *) target_info->line_buffer;
+	if (line_buffer->x_buffer_size != total_buffer_size)
 	{
-		if (rasterizer->x_buffer_size)
+		if (line_buffer->x_buffer_size)
 		{
-			SAIM_FREE(rasterizer->x_keys);
-			SAIM_FREE(rasterizer->x_samples);
-			SAIM_FREE(rasterizer->x_pixels);
+			SAIM_FREE(line_buffer->x_keys);
+			SAIM_FREE(line_buffer->x_samples);
+			SAIM_FREE(line_buffer->x_pixels);
 		}
-		rasterizer->x_buffer_size = total_buffer_size;
-		rasterizer->x_keys    = (int*) SAIM_MALLOC(rasterizer->x_buffer_size * sizeof(int));
-		rasterizer->x_samples = (int*) SAIM_MALLOC(rasterizer->x_buffer_size * sizeof(int));
-		rasterizer->x_pixels  = (int*) SAIM_MALLOC(rasterizer->x_buffer_size * sizeof(int));
+		line_buffer->x_buffer_size = total_buffer_size;
+		line_buffer->x_keys    = (int*) SAIM_MALLOC(line_buffer->x_buffer_size * sizeof(int));
+		line_buffer->x_samples = (int*) SAIM_MALLOC(line_buffer->x_buffer_size * sizeof(int));
+		line_buffer->x_pixels  = (int*) SAIM_MALLOC(line_buffer->x_buffer_size * sizeof(int));
 	}
-	if (rasterizer->y_buffer_size != total_buffer_size)
+	if (line_buffer->y_buffer_size != total_buffer_size)
 	{
-		if (rasterizer->y_buffer_size)
+		if (line_buffer->y_buffer_size)
 		{
-			SAIM_FREE(rasterizer->y_keys);
-			SAIM_FREE(rasterizer->y_samples);
-			SAIM_FREE(rasterizer->y_pixels);
+			SAIM_FREE(line_buffer->y_keys);
+			SAIM_FREE(line_buffer->y_samples);
+			SAIM_FREE(line_buffer->y_pixels);
 		}
-		rasterizer->y_buffer_size = total_buffer_size;
-		rasterizer->y_keys    = (int*) SAIM_MALLOC(rasterizer->y_buffer_size * sizeof(int));
-		rasterizer->y_samples = (int*) SAIM_MALLOC(rasterizer->y_buffer_size * sizeof(int));
-		rasterizer->y_pixels  = (int*) SAIM_MALLOC(rasterizer->y_buffer_size * sizeof(int));
+		line_buffer->y_buffer_size = total_buffer_size;
+		line_buffer->y_keys    = (int*) SAIM_MALLOC(line_buffer->y_buffer_size * sizeof(int));
+		line_buffer->y_samples = (int*) SAIM_MALLOC(line_buffer->y_buffer_size * sizeof(int));
+		line_buffer->y_pixels  = (int*) SAIM_MALLOC(line_buffer->y_buffer_size * sizeof(int));
 	}
 
 	// Copy pointers to variables for faster access
-	int * x_keys    = rasterizer->x_keys;
-	int * x_samples = rasterizer->x_samples;
-	int * x_pixels  = rasterizer->x_pixels;
-	int * y_keys    = rasterizer->y_keys;
-	int * y_samples = rasterizer->y_samples;
-	int * y_pixels  = rasterizer->y_pixels;
+	int * x_keys    = line_buffer->x_keys;
+	int * x_samples = line_buffer->x_samples;
+	int * x_pixels  = line_buffer->x_pixels;
+	int * y_keys    = line_buffer->y_keys;
+	int * y_samples = line_buffer->y_samples;
+	int * y_pixels  = line_buffer->y_pixels;
 
 	// Fill buffers
 	for (int x = 0; x < rotated_screen_width; ++x)
@@ -870,7 +889,7 @@ void saim_rasterizer__render_common_impl(saim_rasterizer * rasterizer,
 			int key_y = y_keys[y_mapped];
 
 			const saim_buffered_bitmap_info * info;
-			info = saim_rasterizer__get_bitmap_from_buffer(rasterizer, key_x, key_y);
+			info = saim_rasterizer_async__get_bitmap_from_buffer(target_info, key_x, key_y);
 			if (info->bitmap == NULL)
 			{
 				// Tile hasn't been loaded yet
@@ -907,15 +926,15 @@ void saim_rasterizer__render_common_impl(saim_rasterizer * rasterizer,
 		} // for x
 	} // for y
 }
-void saim_rasterizer__render_mapped_cube_impl(saim_rasterizer * rasterizer,
+void saim_rasterizer_async__render_mapped_cube_impl(saim_rasterizer_async * rasterizer, saim_target_info * target_info,
 	int face, double u_min, double v_min, double u_max, double v_max, int level_of_detail)
 {
 	// Bitmap should have the same BPP as the target buffer
-	unsigned char * dst = rasterizer->target_buffer;
+	unsigned char * dst = target_info->target_buffer;
 
-	const int screen_width = rasterizer->target_width;
-	const int screen_height = rasterizer->target_height;
-	const int screen_bpp = rasterizer->target_bpp;
+	const int screen_width = target_info->target_width;
+	const int screen_height = target_info->target_height;
+	const int screen_bpp = target_info->target_bpp;
 	const int kBitmapWidth = rasterizer->instance->provider->bitmap_width;
 	const int kBitmapHeight = rasterizer->instance->provider->bitmap_height;
 
@@ -944,7 +963,7 @@ void saim_rasterizer__render_mapped_cube_impl(saim_rasterizer * rasterizer,
 			int key_y = bitmap_y / kBitmapHeight;
 
 			const saim_buffered_bitmap_info * info;
-			info = saim_rasterizer__get_bitmap_from_buffer(rasterizer, key_x, key_y);
+			info = saim_rasterizer_async__get_bitmap_from_buffer(target_info, key_x, key_y);
 			assert(info);
 			if (info->bitmap == NULL)
 			{
@@ -981,11 +1000,11 @@ void saim_rasterizer__render_mapped_cube_impl(saim_rasterizer * rasterizer,
 		} // for x
 	} // for y
 }
-void saim_rasterizer__initialize_bitmap_buffer(saim_rasterizer * rasterizer, 
+void saim_rasterizer_async__initialize_bitmap_buffer(saim_target_info * target_info,
 	int key_min_x, int key_max_x, int key_min_y, int key_max_y, int level_of_detail, bool is_break)
 {
 	int width, height, bitmap_height;
-	saim_bitmap_buffer * buffer = &rasterizer->bitmap_buffer;
+	saim_bitmap_buffer * buffer = (saim_bitmap_buffer *) target_info->bitmap_buffer;
 
 	width = key_max_x - key_min_x + 1;
 	if (width <= 0)
@@ -1023,11 +1042,11 @@ void saim_rasterizer__initialize_bitmap_buffer(saim_rasterizer * rasterizer,
 	buffer->is_break = is_break;
 	buffer->has_any_low_detailed_bitmap = false;
 }
-void saim_rasterizer__set_bitmap_for_buffer(saim_rasterizer * rasterizer, int key_x, int key_y, const saim_bitmap * bitmap)
+void saim_rasterizer_async__set_bitmap_for_buffer(saim_target_info * target_info, int key_x, int key_y, const saim_bitmap * bitmap)
 {
 	int x, y, index;
 	saim_buffered_bitmap_info * data;
-	saim_bitmap_buffer * buffer = &rasterizer->bitmap_buffer;
+	saim_bitmap_buffer * buffer = (saim_bitmap_buffer *) target_info->bitmap_buffer;
 
 	x = key_x - buffer->key_min_x;
 	if (x < 0) // within break
@@ -1044,11 +1063,12 @@ void saim_rasterizer__set_bitmap_for_buffer(saim_rasterizer * rasterizer, int ke
 	data->bitmap = bitmap;
 	data->level_ascending = 0;
 }
-void saim_rasterizer__set_bitmap_low_for_buffer(saim_rasterizer * rasterizer, int key_z_low, int key_x, int key_y, const saim_bitmap * bitmap)
+void saim_rasterizer_async__set_bitmap_low_for_buffer(saim_target_info * target_info, 
+	int key_z_low, int key_x, int key_y, const saim_bitmap * bitmap)
 {
 	int x, y, index;
 	saim_buffered_bitmap_info * data;
-	saim_bitmap_buffer * buffer = &rasterizer->bitmap_buffer;
+	saim_bitmap_buffer * buffer = (saim_bitmap_buffer *) target_info->bitmap_buffer;
 
 	x = key_x - buffer->key_min_x;
 	if (x < 0) // within break
@@ -1067,10 +1087,10 @@ void saim_rasterizer__set_bitmap_low_for_buffer(saim_rasterizer * rasterizer, in
 
 	buffer->has_any_low_detailed_bitmap = true;
 }
-const saim_buffered_bitmap_info * saim_rasterizer__get_bitmap_from_buffer(saim_rasterizer * rasterizer, int key_x, int key_y)
+const saim_buffered_bitmap_info * saim_rasterizer_async__get_bitmap_from_buffer(saim_target_info * target_info, int key_x, int key_y)
 {
 	int x, y, index;
-	saim_bitmap_buffer * buffer = &rasterizer->bitmap_buffer;
+	saim_bitmap_buffer * buffer = (saim_bitmap_buffer *) target_info->bitmap_buffer;
 
 	bool in_x_range = (buffer->is_break)
 		? (key_x >= buffer->key_min_x || key_x <= buffer->key_max_x)
@@ -1087,11 +1107,11 @@ const saim_buffered_bitmap_info * saim_rasterizer__get_bitmap_from_buffer(saim_r
 	else
 		return NULL;
 }
-void saim_rasterizer__erase_key_from_buffer(saim_rasterizer * rasterizer, const saim_data_key * key)
+void saim_rasterizer_async__erase_key_from_buffer(saim_target_info * target_info, const saim_data_key * key)
 {
 	int key_x, key_y, key_z;
 	saim_buffered_bitmap_info * data;
-	saim_bitmap_buffer * buffer = &rasterizer->bitmap_buffer;
+	saim_bitmap_buffer * buffer = (saim_bitmap_buffer *) target_info->bitmap_buffer;
 
 	key_x = saim_data_key__get_x(key);
 	key_y = saim_data_key__get_y(key);
@@ -1143,7 +1163,7 @@ void saim_rasterizer__erase_key_from_buffer(saim_rasterizer * rasterizer, const 
 		}
 	}
 }
-void saim_rasterizer__sort_cache(saim_rasterizer * rasterizer)
+void saim_rasterizer_async__sort_cache(saim_rasterizer_async * rasterizer)
 {
 	// Predicate is inside this function
 	saim_bitmap_cache_info_list__sort(&rasterizer->bitmap_cache);

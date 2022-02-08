@@ -28,11 +28,12 @@
 #define __SAIM_H__
 
 #include "saim_provider_info.h"
+#include "saim_target_info.h"
 
 #include <stdlib.h>
 
 #ifndef SAIM_VERSION
-#define SAIM_VERSION 105
+#define SAIM_VERSION 106
 #endif
 
 #ifdef _WIN32
@@ -62,6 +63,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /*! @brief Library initialization function.
+ * 
  *  @param[in] path          A path there tiles storage is located.
  *  @param[in] provider_info Pointer to provider info that discribes tiles services parameters.
  *  @param[in] flags         Some flags that discribe which parameters from provider info is to use.
@@ -70,16 +72,19 @@ extern "C" {
  *  @param[out] error        Pointer to error code: 0 on success and not 0 in case of error.
  *                           Can be NULL.
  *  @return                  Returns pointer to initialized instance or NULL in case of error.
-*/
+ */
 struct saim_instance * saim_init(const char* path, saim_provider_info * provider_info, 
     int flags, int service_count, int * error);
 
 /*! @brief Library cleanup function.
+ * 
  *  @param[in] instance      The library instance.
-*/
+ */
 void saim_cleanup(struct saim_instance * instance);
 
 /*! @brief Setups target bitmap parameters.
+ *  Used for thread-unsafe functions only.
+ * 
  *  @param[in] instance        The library instance.
  *  @param[in] buffer          Pointer to the target buffer.
  *  @param[in] width           Width of the target buffer.
@@ -92,7 +97,7 @@ void saim_set_target(struct saim_instance * instance,
 /*! @brief Setups maximum bitmap cache size (capacity).
  *  @param[in] instance        The library instance.
  *  @param[in] size            Size of bitmap.
-*/
+ */
 void saim_set_bitmap_cache_size(struct saim_instance * instance, unsigned int size);
 
 /*! @brief Defines user functions to allocate and deallocate memory.
@@ -101,7 +106,7 @@ void saim_set_bitmap_cache_size(struct saim_instance * instance, unsigned int si
  *  @param[in] user_realloc    User realloc function pointer.
  *  @param[in] user_free       User free function pointer.
  *  @param[in] user_strdup     User strdup function pointer.
-*/
+ */
 void saim_set_memory_functions(
 	void* (*user_malloc)(size_t /*size*/),
 	void* (*user_calloc)(size_t /*num*/, size_t /*size*/),
@@ -112,6 +117,8 @@ void saim_set_memory_functions(
 
 /*! @brief Renders desired region with view rectangle aligned to axis.
  *  Used projection is linear to latitude and longitude.
+ *  Thread-unsafe function.
+ * 
  *  @param[in] instance        The library instance.
  *  @param[in] upper_latitude  Latitude of the upper left point of rendered rectangle, degrees.
  *  @param[in] left_longitude  Longitude of the upper left point of rendered rectangle, degrees.
@@ -119,11 +126,13 @@ void saim_set_memory_functions(
  *  @param[in] right_longitude Longitude of the lower right point of rendered rectangle, degrees.
  *  @return                    Returns number of tiles that are left to load (0 if buffer has been filled)
  *  					       and -1 in case of error.
-*/
+ */
 int saim_render_aligned(struct saim_instance * instance, double upper_latitude, double left_longitude, double lower_latitude, double right_longitude);
 
 /*! @brief Renders desired region with rotated view rectangle.
  *  Used projection is linear to latitude and longitude.
+ *  Thread-unsafe function.
+ * 
  *  @param[in] instance        The library instance.
  *  @param[in] upper_latitude  Latitude of the upper left point of rendered rectangle, degrees.
  *  @param[in] left_longitude  Longitude of the upper left point of rendered rectangle, degrees.
@@ -132,12 +141,13 @@ int saim_render_aligned(struct saim_instance * instance, double upper_latitude, 
  *  @param[in] angle           Rotation angle of rectangle, clock wise, degrees.
  *  @return                    Returns number of tiles that are left to load (0 if buffer has been filled) and
  *			   				   -1 in case of error.
-*/
+ */
 int saim_render_common(struct saim_instance * instance, double upper_latitude, double left_longitude, double lower_latitude, double right_longitude, float angle);
 
 /*! @brief Renders cube face tile using saved bitmaps.
  *  Cube is being mapped onto sphere. This the best way for rendering the sphere.
  *  Each cube face is being split via quad tree.
+ *  Thread-unsafe function.
  *  
  *  @param[in] instance        The library instance.
  *  @param[in] face            Index of the face of the cube (from 0 to 5).
@@ -146,6 +156,54 @@ int saim_render_common(struct saim_instance * instance, double upper_latitude, d
  *  @param[in] y               Y coordinate of the tile.
  */
 int saim_render_mapped_cube(struct saim_instance * instance, int face, int lod, int x, int y);
+
+/*! @brief Renders desired region with view rectangle aligned to axis.
+ *  Used projection is linear to latitude and longitude.
+ *  Thread-safe function.
+ * 
+ *  @param[in] instance        The library instance.
+ *  @param[in] target_info     The target information instance.
+ *  @param[in] upper_latitude  Latitude of the upper left point of rendered rectangle, degrees.
+ *  @param[in] left_longitude  Longitude of the upper left point of rendered rectangle, degrees.
+ *  @param[in] lower_latitude  Latitude of the lower right point of rendered rectangle, degrees.
+ *  @param[in] right_longitude Longitude of the lower right point of rendered rectangle, degrees.
+ *  @return                    Returns number of tiles that are left to load (0 if buffer has been filled)
+ *                             and -1 in case of error.
+ */
+int saim_render_aligned_async(struct saim_instance * instance, saim_target_info * target_info,
+    double upper_latitude, double left_longitude, double lower_latitude, double right_longitude);
+
+/*! @brief Renders desired region with rotated view rectangle.
+ *  Used projection is linear to latitude and longitude.
+ *  Thread-safe function.
+ * 
+ *  @param[in] instance        The library instance.
+ *  @param[in] target_info     The target information instance.
+ *  @param[in] upper_latitude  Latitude of the upper left point of rendered rectangle, degrees.
+ *  @param[in] left_longitude  Longitude of the upper left point of rendered rectangle, degrees.
+ *  @param[in] lower_latitude  Latitude of the lower right point of rendered rectangle, degrees.
+ *  @param[in] right_longitude Longitude of the lower right point of rendered rectangle, degrees.
+ *  @param[in] angle           Rotation angle of rectangle, clock wise, degrees.
+ *  @return                    Returns number of tiles that are left to load (0 if buffer has been filled) and
+ *                             -1 in case of error.
+ */
+int saim_render_common_async(struct saim_instance * instance, saim_target_info * target_info,
+    double upper_latitude, double left_longitude, double lower_latitude, double right_longitude, float angle);
+
+/*! @brief Renders cube face tile using saved bitmaps.
+ *  Cube is being mapped onto sphere. This the best way for rendering the sphere.
+ *  Each cube face is being split via quad tree.
+ *  Thread-safe function.
+ *  
+ *  @param[in] instance        The library instance.
+ *  @param[in] target_info     The target information instance.
+ *  @param[in] face            Index of the face of the cube (from 0 to 5).
+ *  @param[in] lod             Level of detail of the tile.
+ *  @param[in] x               X coordinate of the tile.
+ *  @param[in] y               Y coordinate of the tile.
+ */
+int saim_render_mapped_cube_async(struct saim_instance * instance, saim_target_info * target_info,
+    int face, int lod, int x, int y);
 
 #ifdef __cplusplus
 }

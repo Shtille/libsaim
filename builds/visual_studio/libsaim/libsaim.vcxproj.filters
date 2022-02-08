@@ -24,6 +24,9 @@
     <ClInclude Include="..\..\..\include\saim_provider_info.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\saim_target_info.h">
+      <Filter>include</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\deps\tinycthread.h">
       <Filter>deps</Filter>
     </ClInclude>
@@ -81,10 +84,16 @@
     <ClInclude Include="..\..\..\src\rasterizer\saim_decoder_png.h">
       <Filter>src\rasterizer</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\src\rasterizer\saim_line_buffer.h">
+      <Filter>src\rasterizer</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\src\rasterizer\saim_mercator.h">
       <Filter>src\rasterizer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\rasterizer\saim_rasterizer.h">
+      <Filter>src\rasterizer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\rasterizer\saim_rasterizer_async.h">
       <Filter>src\rasterizer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\saim_cache.h">
@@ -225,6 +234,12 @@
       <Filter>src\rasterizer</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\rasterizer\saim_rasterizer.c">
+      <Filter>src\rasterizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\rasterizer\saim_rasterizer_async.c">
+      <Filter>src\rasterizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\rasterizer\saim_target_info.c">
       <Filter>src\rasterizer</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\saim_cache.c">
