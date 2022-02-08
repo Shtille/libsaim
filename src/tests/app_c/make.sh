@@ -1,2 +1,2 @@
 #!/bin/sh
-gcc main.c -g -DSAIM_STATICLIB -lsaim -o app
+gcc main.c -DSAIM_STATICLIB -L../../../lib -lsaim -lcurl -ljpeg -lpng -lz -o app

@@ -43,6 +43,10 @@ struct saim_target_info {
 	void* line_buffer;   //!< pointer to saim_line_buffer instance, for inner use
 };
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /*!
  * Creates target information structure instance based on input parameters.
  * Don't forget to allocate memory for structure instance before passing it here.
@@ -61,5 +65,9 @@ bool saim_target_info__create(saim_target_info * info, unsigned char* buffer, in
  * Destroys previously created target information structure instance.
  */
 void saim_target_info__destroy(saim_target_info * info);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif

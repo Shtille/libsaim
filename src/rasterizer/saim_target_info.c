@@ -46,7 +46,10 @@ bool saim_target_info__create(saim_target_info * info, unsigned char* buffer, in
 
 	info->line_buffer = SAIM_MALLOC(sizeof(saim_line_buffer));
 	if (info->line_buffer == NULL)
+	{
+		SAIM_FREE(info->bitmap_buffer);
 		return false;
+	}
 	line_buffer = (saim_line_buffer *) info->line_buffer;
 	line_buffer->x_buffer_size = 0;
 	line_buffer->y_buffer_size = 0;
@@ -78,4 +81,5 @@ void saim_target_info__destroy(saim_target_info * info)
 		SAIM_FREE(line_buffer->y_samples);
 		SAIM_FREE(line_buffer->y_pixels);
 	}
+	SAIM_FREE(info->line_buffer);
 }
