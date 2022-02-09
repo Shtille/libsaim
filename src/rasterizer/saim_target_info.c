@@ -54,7 +54,8 @@ bool saim_target_info__create(saim_target_info * info, unsigned char* buffer, in
 	saim_line_buffer__create(line_buffer);
 
 	// To speadup the rendering, reallocate buffers on preprocess
-	saim_line_buffer__reallocate(line_buffer, width, height);
+	const int total_buffer_size = (width > height) ? (width << 1) : (height << 1);
+	saim_line_buffer__reallocate(line_buffer, total_buffer_size);
 
 	return true;
 }
