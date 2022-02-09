@@ -27,6 +27,7 @@
 #include "saim_rasterizer_async.h"
 
 #include "saim_mercator.h"
+#include "saim_line_buffer.h"
 #include "saim_decoder_jpeg.h"
 #include "saim_decoder_png.h"
 #include "../saim_instance.h"
@@ -670,32 +671,7 @@ void saim_rasterizer_async__render_aligned_impl(saim_rasterizer_async * rasteriz
 
 	// Resize buffers
 	saim_line_buffer * line_buffer = (saim_line_buffer *) target_info->line_buffer;
-	if (line_buffer->x_buffer_size != total_buffer_size)
-	{
-		if (line_buffer->x_buffer_size)
-		{
-			SAIM_FREE(line_buffer->x_keys);
-			SAIM_FREE(line_buffer->x_samples);
-			SAIM_FREE(line_buffer->x_pixels);
-		}
-		line_buffer->x_buffer_size = total_buffer_size;
-		line_buffer->x_keys    = (int*) SAIM_MALLOC(line_buffer->x_buffer_size * sizeof(int));
-		line_buffer->x_samples = (int*) SAIM_MALLOC(line_buffer->x_buffer_size * sizeof(int));
-		line_buffer->x_pixels  = (int*) SAIM_MALLOC(line_buffer->x_buffer_size * sizeof(int));
-	}
-	if (line_buffer->y_buffer_size != total_buffer_size)
-	{
-		if (line_buffer->y_buffer_size)
-		{
-			SAIM_FREE(line_buffer->y_keys);
-			SAIM_FREE(line_buffer->y_samples);
-			SAIM_FREE(line_buffer->y_pixels);
-		}
-		line_buffer->y_buffer_size = total_buffer_size;
-		line_buffer->y_keys    = (int*) SAIM_MALLOC(line_buffer->y_buffer_size * sizeof(int));
-		line_buffer->y_samples = (int*) SAIM_MALLOC(line_buffer->y_buffer_size * sizeof(int));
-		line_buffer->y_pixels  = (int*) SAIM_MALLOC(line_buffer->y_buffer_size * sizeof(int));
-	}
+	saim_line_buffer__reallocate(line_buffer, total_buffer_size);
 
 	// Copy pointers to variables for faster access
 	int * x_keys    = line_buffer->x_keys;
@@ -802,32 +778,7 @@ void saim_rasterizer_async__render_common_impl(saim_rasterizer_async * rasterize
 
 	// Resize buffers
 	saim_line_buffer * line_buffer = (saim_line_buffer *) target_info->line_buffer;
-	if (line_buffer->x_buffer_size != total_buffer_size)
-	{
-		if (line_buffer->x_buffer_size)
-		{
-			SAIM_FREE(line_buffer->x_keys);
-			SAIM_FREE(line_buffer->x_samples);
-			SAIM_FREE(line_buffer->x_pixels);
-		}
-		line_buffer->x_buffer_size = total_buffer_size;
-		line_buffer->x_keys    = (int*) SAIM_MALLOC(line_buffer->x_buffer_size * sizeof(int));
-		line_buffer->x_samples = (int*) SAIM_MALLOC(line_buffer->x_buffer_size * sizeof(int));
-		line_buffer->x_pixels  = (int*) SAIM_MALLOC(line_buffer->x_buffer_size * sizeof(int));
-	}
-	if (line_buffer->y_buffer_size != total_buffer_size)
-	{
-		if (line_buffer->y_buffer_size)
-		{
-			SAIM_FREE(line_buffer->y_keys);
-			SAIM_FREE(line_buffer->y_samples);
-			SAIM_FREE(line_buffer->y_pixels);
-		}
-		line_buffer->y_buffer_size = total_buffer_size;
-		line_buffer->y_keys    = (int*) SAIM_MALLOC(line_buffer->y_buffer_size * sizeof(int));
-		line_buffer->y_samples = (int*) SAIM_MALLOC(line_buffer->y_buffer_size * sizeof(int));
-		line_buffer->y_pixels  = (int*) SAIM_MALLOC(line_buffer->y_buffer_size * sizeof(int));
-	}
+	saim_line_buffer__reallocate(line_buffer, total_buffer_size);
 
 	// Copy pointers to variables for faster access
 	int * x_keys    = line_buffer->x_keys;

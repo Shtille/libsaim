@@ -43,4 +43,8 @@ struct saim_line_buffer {
 	int * y_pixels;         //!< transforms screen pixel y to bitmap pixel y
 };
 
+void saim_line_buffer__create(saim_line_buffer * line_buffer);
+void saim_line_buffer__destroy(saim_line_buffer * line_buffer);
+void saim_line_buffer__reallocate(saim_line_buffer * line_buffer, int total_buffer_size);
+
 #endif

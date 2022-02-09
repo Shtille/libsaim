@@ -51,14 +51,10 @@ bool saim_target_info__create(saim_target_info * info, unsigned char* buffer, in
 		return false;
 	}
 	line_buffer = (saim_line_buffer *) info->line_buffer;
-	line_buffer->x_buffer_size = 0;
-	line_buffer->y_buffer_size = 0;
-	line_buffer->x_keys = 0;
-	line_buffer->x_samples = 0;
-	line_buffer->x_pixels = 0;
-	line_buffer->y_keys = 0;
-	line_buffer->y_samples = 0;
-	line_buffer->y_pixels = 0;
+	saim_line_buffer__create(line_buffer);
+
+	// To speadup the rendering, reallocate buffers on preprocess
+	saim_line_buffer__reallocate(line_buffer, width, height);
 
 	return true;
 }
@@ -69,17 +65,6 @@ void saim_target_info__destroy(saim_target_info * info)
 	saim_bitmap_buffer__destroy((saim_bitmap_buffer *) info->bitmap_buffer);
 	SAIM_FREE(info->bitmap_buffer);
 
-	if (line_buffer->x_buffer_size)
-	{
-		SAIM_FREE(line_buffer->x_keys);
-		SAIM_FREE(line_buffer->x_samples);
-		SAIM_FREE(line_buffer->x_pixels);
-	}
-	if (line_buffer->y_buffer_size)
-	{
-		SAIM_FREE(line_buffer->y_keys);
-		SAIM_FREE(line_buffer->y_samples);
-		SAIM_FREE(line_buffer->y_pixels);
-	}
+	saim_line_buffer__destroy(line_buffer);
 	SAIM_FREE(info->line_buffer);
 }
