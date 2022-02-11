@@ -123,6 +123,8 @@ private:
 
 class ThreadPool {
 public:
+	static constexpr size_t kNumThreads = 4;
+public:
 	ThreadPool(int target_width, int target_height, int target_bpp)
 	: id_counter_(0)
 	, target_width_(target_width)
@@ -181,7 +183,6 @@ protected:
 		return true;
 	}
 private:
-	static constexpr size_t kNumThreads = 4;
 	int id_counter_;
 	int target_width_;
 	int target_height_;
@@ -240,8 +241,8 @@ int main()
 	unsigned char * buffer = (unsigned char *) malloc(width * height * bytes_per_pixel);
 	saim_set_target(instance, buffer, width, height, bytes_per_pixel);
 
+	// Just to allocate speedup buffers inside
 	{
-		// Just to allocate speedup buffers inside
 		int num_tiles_left;
 		do
 		{
@@ -252,13 +253,16 @@ int main()
 	}
 	{
 		ScopeTimer timer("Single thread run");
-		int num_tiles_left;
-		do
+		for (size_t i = 0; i < ThreadPool::kNumThreads; ++i)
 		{
-			num_tiles_left = saim_render_aligned(instance, upper_latitude, left_longitude, lower_latitude, right_longitude);
-			std::this_thread::yield();
+			int num_tiles_left;
+			do
+			{
+				num_tiles_left = saim_render_aligned(instance, upper_latitude, left_longitude, lower_latitude, right_longitude);
+				std::this_thread::yield();
+			}
+			while (num_tiles_left > 0);
 		}
-		while (num_tiles_left > 0);
 	}
 
 	// Don't forget to free buffer that we've been using
