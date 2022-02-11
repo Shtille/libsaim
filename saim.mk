@@ -60,9 +60,9 @@ $(shell mkdir -p $(dir $(DEPS)) >/dev/null)
 endif
 
 # C flags
-CFLAGS := -std=c99
+CFLAGS := -std=c11
 # C++ flags
-CXXFLAGS := -std=c++99
+CXXFLAGS := -std=c++11
 # C/C++ flags
 CPPFLAGS := -g -Wall -O3
 #CPPFLAGS += -Wextra -pedantic

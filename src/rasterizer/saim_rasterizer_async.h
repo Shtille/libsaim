@@ -33,6 +33,7 @@
 #include "saim_data_pair_list.h"
 #include "saim_bitmap_cache_info_list.h"
 #include "saim_line_buffer.h"
+#include "../util/saim_spin.h" // faster than mutex
 
 #include "saim_target_info.h"
 
@@ -45,9 +46,9 @@ typedef struct saim_rasterizer_async saim_rasterizer_async;
 struct saim_rasterizer_async {
 	struct saim_instance * instance;    //!< pointer to library instance
 
-	mtx_t request_mutex;				//!< mutex to protect requests
-	mtx_t bitmap_mutex;					//!< mutex to protect bitmap map and cache
-	mtx_t pending_data_mutex;			//!< mutex to protect pending data
+	saim_spin request_mutex;			//!< mutex to protect requests
+	saim_spin bitmap_mutex;				//!< mutex to protect bitmap map and cache
+	saim_spin pending_data_mutex;		//!< mutex to protect pending data
 	saim_data_pair_list pending_data;   //!< data that pending for conversion
 	saim_key_set requested_keys;        //!< to not make another calls if already requested
 	saim_bitmap_map bitmap_map;         //!< extracted bitmaps

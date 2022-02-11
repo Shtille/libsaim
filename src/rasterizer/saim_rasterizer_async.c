@@ -45,24 +45,27 @@ bool saim_rasterizer_async__create(saim_rasterizer_async * rasterizer, saim_inst
 
 	rasterizer->instance = instance;
 
-	if (mtx_init(&rasterizer->request_mutex, mtx_plain) == thrd_error)
-	{
-		fprintf(stderr, "saim: mutex init failed\n");
-		return false;
-	}
-	if (mtx_init(&rasterizer->bitmap_mutex, mtx_plain) == thrd_error)
-	{
-		fprintf(stderr, "saim: mutex init failed\n");
-		mtx_destroy(&rasterizer->request_mutex);
-		return false;
-	}
-	if (mtx_init(&rasterizer->pending_data_mutex, mtx_plain) == thrd_error)
-	{
-		fprintf(stderr, "saim: mutex init failed\n");
-		mtx_destroy(&rasterizer->bitmap_mutex);
-		mtx_destroy(&rasterizer->request_mutex);
-		return false;
-	}
+	saim_spin__init(&rasterizer->request_mutex);
+	saim_spin__init(&rasterizer->bitmap_mutex);
+	saim_spin__init(&rasterizer->pending_data_mutex);
+	// if (mtx_init(&rasterizer->request_mutex, mtx_plain) == thrd_error)
+	// {
+	// 	fprintf(stderr, "saim: mutex init failed\n");
+	// 	return false;
+	// }
+	// if (mtx_init(&rasterizer->bitmap_mutex, mtx_plain) == thrd_error)
+	// {
+	// 	fprintf(stderr, "saim: mutex init failed\n");
+	// 	mtx_destroy(&rasterizer->request_mutex);
+	// 	return false;
+	// }
+	// if (mtx_init(&rasterizer->pending_data_mutex, mtx_plain) == thrd_error)
+	// {
+	// 	fprintf(stderr, "saim: mutex init failed\n");
+	// 	mtx_destroy(&rasterizer->bitmap_mutex);
+	// 	mtx_destroy(&rasterizer->request_mutex);
+	// 	return false;
+	// }
 	saim_data_pair_list__create(&rasterizer->pending_data);
 	saim_key_set__create(&rasterizer->requested_keys);
 	saim_bitmap_map__create(&rasterizer->bitmap_map);
@@ -81,9 +84,9 @@ void saim_rasterizer_async__destroy(saim_rasterizer_async * rasterizer)
 	saim_bitmap_map__destroy(&rasterizer->bitmap_map);
 	saim_key_set__destroy(&rasterizer->requested_keys);
 	saim_data_pair_list__destroy(&rasterizer->pending_data);
-	mtx_destroy(&rasterizer->pending_data_mutex);
-	mtx_destroy(&rasterizer->bitmap_mutex);
-	mtx_destroy(&rasterizer->request_mutex);
+	// mtx_destroy(&rasterizer->pending_data_mutex);
+	// mtx_destroy(&rasterizer->bitmap_mutex);
+	// mtx_destroy(&rasterizer->request_mutex);
 }
 int saim_rasterizer_async__render_aligned(saim_rasterizer_async * rasterizer, saim_target_info * target_info,
 	double upper_latitude, double left_longitude, double lower_latitude, double right_longitude)
@@ -159,19 +162,19 @@ static void tile_notification_function(saim_instance * instance, const saim_data
 	pair = (saim_data_pair *) SAIM_MALLOC(sizeof(saim_data_pair));
 	saim_data_pair__create(pair);
 	
-	mtx_lock(&instance->rasterizer_async->pending_data_mutex);
+	saim_spin__lock(&instance->rasterizer_async->pending_data_mutex);
 	pair->key = *key; // copy key value
 	if (success)
 	{
 		saim_string_swap(&pair->data, data);
 	}
 	saim_data_pair_list__push_back(&instance->rasterizer_async->pending_data, pair);
-	mtx_unlock(&instance->rasterizer_async->pending_data_mutex);
+	saim_spin__unlock(&instance->rasterizer_async->pending_data_mutex);
 }
 
 void saim_rasterizer_async__push_request(saim_rasterizer_async * rasterizer, const saim_data_key * key)
 {
-	mtx_lock(&rasterizer->request_mutex);
+	saim_spin__lock(&rasterizer->request_mutex);
 	// Whether key requested to load or loaded
     if (!saim_rasterizer_async__is_requested(rasterizer, key))
     {
@@ -181,22 +184,22 @@ void saim_rasterizer_async__push_request(saim_rasterizer_async * rasterizer, con
         // Perform query for each key that hasn't been loaded
         saim_cache__tile_service_load_query(rasterizer->instance->cache, key, tile_notification_function);
     }
-    mtx_unlock(&rasterizer->request_mutex);
+    saim_spin__unlock(&rasterizer->request_mutex);
 }
 void saim_rasterizer_async__clear(saim_rasterizer_async * rasterizer)
 {
-	mtx_lock(&rasterizer->pending_data_mutex);
+	saim_spin__lock(&rasterizer->pending_data_mutex);
 	saim_data_pair_list__clear(&rasterizer->pending_data);
-	mtx_unlock(&rasterizer->pending_data_mutex);
+	saim_spin__unlock(&rasterizer->pending_data_mutex);
 
-	mtx_lock(&rasterizer->request_mutex);
+	saim_spin__lock(&rasterizer->request_mutex);
 	saim_key_set__clear(&rasterizer->requested_keys);
-	mtx_unlock(&rasterizer->request_mutex);
+	saim_spin__unlock(&rasterizer->request_mutex);
 
-	mtx_lock(&rasterizer->bitmap_mutex);
+	saim_spin__lock(&rasterizer->bitmap_mutex);
 	saim_bitmap_map__clear(&rasterizer->bitmap_map);
 	saim_bitmap_cache_info_list__clear(&rasterizer->bitmap_cache);
-	mtx_unlock(&rasterizer->bitmap_mutex);
+	saim_spin__unlock(&rasterizer->bitmap_mutex);
 }
 const saim_bitmap * saim_rasterizer_async__get_bitmap(saim_rasterizer_async * rasterizer, const saim_data_key * key, bool use_counter)
 {
@@ -204,7 +207,7 @@ const saim_bitmap * saim_rasterizer_async__get_bitmap(saim_rasterizer_async * ra
 	saim_set_node * node;
 	saim_bitmap_info_pair * pair;
 
-	mtx_lock(&rasterizer->bitmap_mutex);
+	saim_spin__lock(&rasterizer->bitmap_mutex);
 	node = saim_bitmap_map__search(&rasterizer->bitmap_map, key);
 	if (node != rasterizer->bitmap_map.set->nil)
 	{
@@ -213,7 +216,7 @@ const saim_bitmap * saim_rasterizer_async__get_bitmap(saim_rasterizer_async * ra
 			*pair->info.p_usage = rasterizer->render_counter; // use render counter as bitmap existence time
 		bitmap = &(pair->info.bitmap);
 	}
-	mtx_unlock(&rasterizer->bitmap_mutex);
+	saim_spin__unlock(&rasterizer->bitmap_mutex);
 	return bitmap;
 }
 bool saim_rasterizer_async__is_requested(saim_rasterizer_async * rasterizer, const saim_data_key * key)
@@ -227,10 +230,10 @@ bool saim_rasterizer_async__is_loaded(saim_rasterizer_async * rasterizer, const 
 	saim_set_node * node;
 	bool loaded;
 
-	mtx_lock(&rasterizer->bitmap_mutex);
+	saim_spin__lock(&rasterizer->bitmap_mutex);
 	node = saim_bitmap_map__search(&rasterizer->bitmap_map, key);
 	loaded = node != rasterizer->bitmap_map.set->nil;
-	mtx_unlock(&rasterizer->bitmap_mutex);
+	saim_spin__unlock(&rasterizer->bitmap_mutex);
 
 	return loaded;
 }
@@ -353,7 +356,7 @@ void saim_rasterizer_async__data_transform(saim_rasterizer_async * rasterizer, s
 	saim_bitmap_info_pair * info_pair;
 	saim_bitmap * bitmap;
 
-	mtx_lock(&rasterizer->bitmap_mutex);
+	saim_spin__lock(&rasterizer->bitmap_mutex);
 	++rasterizer->render_counter;
 
 	// Perform cache sort once per 10 frames
@@ -363,13 +366,13 @@ void saim_rasterizer_async__data_transform(saim_rasterizer_async * rasterizer, s
 		rasterizer->sort_shift_counter = 0;
 		saim_rasterizer_async__sort_cache(rasterizer);
 	}
-	mtx_unlock(&rasterizer->bitmap_mutex);
+	saim_spin__unlock(&rasterizer->bitmap_mutex);
 
 	for (;;)
 	{
-		mtx_lock(&rasterizer->pending_data_mutex);
+		saim_spin__lock(&rasterizer->pending_data_mutex);
 		pair = saim_data_pair_list__pop_front(&rasterizer->pending_data);
-		mtx_unlock(&rasterizer->pending_data_mutex);
+		saim_spin__unlock(&rasterizer->pending_data_mutex);
 		if (!pair)
 			break; // there is no data to transform
 
@@ -378,7 +381,7 @@ void saim_rasterizer_async__data_transform(saim_rasterizer_async * rasterizer, s
 		// Check for skipped data
 		if (pair->data.length != 0)
 		{
-			mtx_lock(&rasterizer->bitmap_mutex);
+			saim_spin__lock(&rasterizer->bitmap_mutex);
 			if (saim_bitmap_map__size(&rasterizer->bitmap_map) == rasterizer->max_bitmap_cache_size)
 			{
 				// Our cache is full, so we gonna replace existing bitmaps
@@ -401,17 +404,17 @@ void saim_rasterizer_async__data_transform(saim_rasterizer_async * rasterizer, s
             node = saim_bitmap_map__insert(&rasterizer->bitmap_map, info_pair);
             info_pair->info.p_usage = & info->usage;
             bitmap = & info_pair->info.bitmap;
-            mtx_unlock(&rasterizer->bitmap_mutex);
+            saim_spin__unlock(&rasterizer->bitmap_mutex);
 
 			// Pair stores encoded image data, so we have to decode it before use
 			decode_image(rasterizer, target_info, &pair->data, bitmap);
 		}
 
 		// Data is loaded, so no we don't need this key in requested list
-		mtx_lock(&rasterizer->request_mutex);
+		saim_spin__lock(&rasterizer->request_mutex);
 		node = saim_key_set__search(&rasterizer->requested_keys, key);
 		saim_key_set__erase(&rasterizer->requested_keys, node);
-		mtx_unlock(&rasterizer->request_mutex);
+		saim_spin__unlock(&rasterizer->request_mutex);
 
 		// Finally
 		saim_data_pair__destroy(pair);
