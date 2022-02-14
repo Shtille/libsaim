@@ -38,7 +38,6 @@ class ThreadInfo {
 public:
 	ThreadInfo(int id)
 	: thread_id_(id)
-	, created_(false)
 	{
 	}
 	~ThreadInfo()
@@ -54,19 +53,12 @@ public:
 		if (buffer == nullptr)
 			return false;
 		buffer_.reset(buffer);
-		bool result = saim_target_info__create(&target_info_, 
+		return saim_target_info__create(&target_info_, 
 			buffer, target_width, target_height, target_bpp);
-		if (result == true)
-			created_ = true;
-		return result;
 	}
 	void Destroy()
 	{
-		if (created_)
-		{
-			saim_target_info__destroy(&target_info_);
-			created_ = false;
-		}
+		saim_target_info__destroy(&target_info_);
 		buffer_.reset(nullptr);
 	}
 	void RenderAligned(struct saim_instance * instance,
@@ -96,7 +88,6 @@ private:
 	int thread_id_;
 	saim_target_info target_info_;
 	std::unique_ptr<unsigned char> buffer_;
-	bool created_;
 };
 
 class ThreadPool {

@@ -38,6 +38,8 @@ bool saim_target_info__create(saim_target_info * info, unsigned char* buffer, in
 	info->target_width = width;
 	info->target_height = height;
 	info->target_bpp = bpp;
+	info->bitmap_buffer = NULL;
+	info->line_buffer = NULL;
 
 	info->bitmap_buffer = SAIM_MALLOC(sizeof(saim_bitmap_buffer));
 	if (info->bitmap_buffer == NULL)
@@ -48,6 +50,7 @@ bool saim_target_info__create(saim_target_info * info, unsigned char* buffer, in
 	if (info->line_buffer == NULL)
 	{
 		SAIM_FREE(info->bitmap_buffer);
+		info->bitmap_buffer = NULL;
 		return false;
 	}
 	line_buffer = (saim_line_buffer *) info->line_buffer;
@@ -61,11 +64,16 @@ bool saim_target_info__create(saim_target_info * info, unsigned char* buffer, in
 }
 void saim_target_info__destroy(saim_target_info * info)
 {
-	saim_line_buffer * line_buffer = (saim_line_buffer *) info->line_buffer;
-
-	saim_bitmap_buffer__destroy((saim_bitmap_buffer *) info->bitmap_buffer);
-	SAIM_FREE(info->bitmap_buffer);
-
-	saim_line_buffer__destroy(line_buffer);
-	SAIM_FREE(info->line_buffer);
+	if (info->bitmap_buffer != NULL)
+	{
+		saim_bitmap_buffer__destroy((saim_bitmap_buffer *) info->bitmap_buffer);
+		SAIM_FREE(info->bitmap_buffer);
+		info->bitmap_buffer = NULL;
+	}
+	if (info->line_buffer != NULL)
+	{
+		saim_line_buffer__destroy((saim_line_buffer *) info->line_buffer);
+		SAIM_FREE(info->line_buffer);
+		info->line_buffer = NULL;
+	}
 }
