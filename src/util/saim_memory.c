@@ -49,6 +49,22 @@ static unsigned int make_hash(const char* filename, int line)
 }
 */
 
+static char * _saim_strdup(const char *src)
+{
+    char *str;
+    char *p;
+    size_t len = 0;
+
+    while (src[len])
+        len++;
+    str = malloc(len + 1);
+    p = str;
+    while (*src)
+        *p++ = *src++;
+    *p = '\0';
+    return str;
+}
+
 #ifdef SAIM_MEMORY_DEBUG
 
 #include "../../deps/tinycthread.h"
@@ -175,7 +191,7 @@ char * saim_strdup(const char* str, const char* filename, int line)
 	//s_allocated_bytes += strlen(str);
 	mtx_unlock(&s_mutex);
 #endif
-	return strdup(str);
+	return _saim_strdup(str);
 }
 
 #ifdef SAIM_USING_USER_MEMORY_FUNCTIONS
